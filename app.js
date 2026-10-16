@@ -40,6 +40,12 @@ $('#copyLink').onclick = async () => {
   catch { $('#copyLink').textContent = 'Copy unavailable'; }
 };
 $('#newRoom').onclick = () => { if (isOwner()) window.location.assign(`${window.location.pathname}?game=cabo-${crypto.randomUUID().slice(0, 12)}`); };
+$('#claimEditor').onclick = () => {
+  if (viewMode || players.length || rounds.length || gameStarted) return;
+  ownerId = DEVICE_ID;
+  saveGame();
+  showCorrectScreen();
+};
 
 function renderSetup() {
   const chips = $('#playerChips'); chips.innerHTML = '';
@@ -57,6 +63,8 @@ function totals() { return players.map((_, i) => rounds.reduce((sum, row) => sum
 function showCorrectScreen() {
   document.body.classList.toggle('viewer-mode', !isOwner());
   $('#accessBanner').textContent = isOwner() ? 'Editor access · only this device can update scores.' : 'Live viewer access · scores update automatically.';
+  const canClaimEmptyGame = !viewMode && !isOwner() && players.length === 0 && rounds.length === 0 && !gameStarted;
+  $('#claimEditor').hidden = !canClaimEmptyGame;
   const showGame = gameStarted || (!isOwner() && players.length >= 2);
   $('#setupCard').hidden = showGame;
   $('#gameArea').hidden = !showGame;
