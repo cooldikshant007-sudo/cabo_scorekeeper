@@ -1,6 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
 const params = new URLSearchParams(window.location.search);
 const suppliedGameId = params.get('game');
+const viewMode = params.get('view') === '1';
 const GAME_ID = /^[a-z0-9-]{3,64}$/.test(suppliedGameId || '') ? suppliedGameId : `poker-${crypto.randomUUID().slice(0, 12)}`;
 if (!suppliedGameId) window.history.replaceState({}, '', `${window.location.pathname}?game=${GAME_ID}`);
 const STORAGE_KEY = `poker-cash-game-${GAME_ID}`;
@@ -25,7 +26,7 @@ function makeId() { return crypto.randomUUID().slice(0, 12); }
 function number(value, fallback = 0) { const result = Number(value); return Number.isFinite(result) ? result : fallback; }
 function escapeHTML(value) { const div = document.createElement('div'); div.textContent = value; return div.innerHTML; }
 function setSyncStatus(message, state = '') { const status = $('#syncStatus'); status.textContent = message; status.className = `sync-status ${state}`; }
-function isOwner() { return liveStateLoaded && game.ownerId === DEVICE_ID; }
+function isOwner() { return liveStateLoaded && !viewMode && game.ownerId === DEVICE_ID; }
 
 function normaliseState(state) {
   const safe = state && typeof state === 'object' ? state : defaultState();
@@ -198,7 +199,7 @@ function render() {
   updateStakeUI(); renderPlayers();
   document.body.classList.toggle('viewer-mode', !isOwner());
   $('#accessBanner').textContent = isOwner() ? (game.settingsLocked ? 'Editor access · stakes are locked.' : 'Editor access · set stakes before the game starts.') : 'Live viewer access · score updates appear automatically.';
-  const canClaimEmptyTable = liveStateLoaded && !isOwner() && game.players.length === 0 && Object.keys(game.finalChips || {}).length === 0 && !game.settingsLocked;
+  const canClaimEmptyTable = liveStateLoaded && !viewMode && !isOwner() && game.players.length === 0 && Object.keys(game.finalChips || {}).length === 0 && !game.settingsLocked;
   $('#claimEditor').hidden = !canClaimEmptyTable;
   $('#totalPlayers').textContent = game.players.length.toLocaleString();
   $('#totalChips').textContent = game.players.reduce((total, player) => total + totalCashIn(player), 0).toLocaleString();
@@ -223,7 +224,7 @@ function addPlayer(rawName, initialBuyIns) {
 }
 
 $('#copyLink').onclick = async () => {
-  const viewerLink = `${window.location.origin}${window.location.pathname}?game=${GAME_ID}`;
+  const viewerLink = `${window.location.origin}${window.location.pathname}?game=${GAME_ID}&view=1`;
   try { await navigator.clipboard.writeText(viewerLink); $('#copyLink').textContent = 'Viewer link copied!'; setTimeout(() => { $('#copyLink').textContent = 'Copy link'; }, 1600); }
   catch { $('#copyLink').textContent = 'Copy unavailable'; }
 };
@@ -247,7 +248,7 @@ $('#copyUpdateText').onclick = async () => {
 $('#newRoom').onclick = () => { window.location.assign(`${window.location.pathname}?game=poker-${crypto.randomUUID().slice(0, 12)}`); };
 $('#claimEditor').onclick = () => {
   const isEmptyTable = game.players.length === 0 && Object.keys(game.finalChips || {}).length === 0 && !game.settingsLocked;
-  if (isOwner() || !isEmptyTable) return;
+  if (viewMode || isOwner() || !isEmptyTable) return;
   game.ownerId = DEVICE_ID;
   saveGame(); render();
 };
