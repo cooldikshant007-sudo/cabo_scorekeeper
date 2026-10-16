@@ -198,6 +198,8 @@ function render() {
   updateStakeUI(); renderPlayers();
   document.body.classList.toggle('viewer-mode', !isOwner());
   $('#accessBanner').textContent = isOwner() ? (game.settingsLocked ? 'Editor access · stakes are locked.' : 'Editor access · set stakes before the game starts.') : 'Live viewer access · score updates appear automatically.';
+  const canClaimEmptyTable = liveStateLoaded && !isOwner() && game.players.length === 0 && Object.keys(game.finalChips || {}).length === 0 && !game.settingsLocked;
+  $('#claimEditor').hidden = !canClaimEmptyTable;
   $('#totalPlayers').textContent = game.players.length.toLocaleString();
   $('#totalChips').textContent = game.players.reduce((total, player) => total + totalCashIn(player), 0).toLocaleString();
   $('#totalBuyIns').textContent = game.players.reduce((total, player) => total + buyInCount(player), 0).toLocaleString();
@@ -243,6 +245,12 @@ $('#copyUpdateText').onclick = async () => {
   } catch { $('#copyUpdateText').textContent = 'Copy unavailable'; }
 };
 $('#newRoom').onclick = () => { window.location.assign(`${window.location.pathname}?game=poker-${crypto.randomUUID().slice(0, 12)}`); };
+$('#claimEditor').onclick = () => {
+  const isEmptyTable = game.players.length === 0 && Object.keys(game.finalChips || {}).length === 0 && !game.settingsLocked;
+  if (isOwner() || !isEmptyTable) return;
+  game.ownerId = DEVICE_ID;
+  saveGame(); render();
+};
 document.querySelectorAll('.tab-button').forEach((button) => button.addEventListener('click', () => showTab(button.dataset.tab)));
 
 $('#settingsForm').addEventListener('submit', (event) => {
