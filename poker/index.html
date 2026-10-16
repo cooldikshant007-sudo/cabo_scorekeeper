@@ -10,7 +10,7 @@
     <title>Poker Cash Game Tracker</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
-  <link rel="stylesheet" href="styles.css?v=21" />
+  <link rel="stylesheet" href="styles.css?v=22" />
   </head>
   <body>
     <main class="app-shell">
@@ -30,6 +30,7 @@
           <div><span>Total buy-ins</span><strong id="totalBuyIns">0</strong></div>
         </div>
         <p id="accessBanner" class="access-banner"></p>
+        <button id="claimEditor" class="claim-editor" type="button" hidden>Set up this table</button>
       </section>
 
       <section id="overviewPanel" class="overview-panel">
@@ -115,6 +116,6 @@
     </main>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=21"></script>
+  <script src="app.js?v=22"></script>
   </body>
 </html>
