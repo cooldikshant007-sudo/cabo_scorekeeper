@@ -1,0 +1,10 @@
+{
+  "name": "Poker Scorekeeper",
+  "short_name": "Poker Scores",
+  "description": "Track poker buy-ins, final stacks, and settlements.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f4eb",
+  "theme_color": "#2563eb",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
