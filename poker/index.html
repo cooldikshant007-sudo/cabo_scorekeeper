@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Poker Scores" />
+    <title>Poker Cash Game Tracker</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="stylesheet" href="styles.css?v=21" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <p class="eyebrow">POKER CASH GAME</p>
+        <h1>Every chip accounted for.</h1>
+        <p class="intro">A simple shared table for buy-ins, final stacks, and settlements.</p>
+        <p id="syncStatus" class="sync-status">Connecting to the live table…</p>
+        <div class="room-controls">
+          <button id="copyLink" class="share-button" type="button">Copy viewer link</button>
+          <button id="copyUpdateText" class="copy-update-button owner-only" type="button">Copy update text</button>
+          <button id="newRoom" class="new-room-button owner-only" type="button">New table</button>
+        </div>
+        <div class="top-summary" aria-live="polite">
+          <div><span>Players</span><strong id="totalPlayers">0</strong></div>
+          <div><span>Chips in play</span><strong id="totalChips">0</strong></div>
+          <div><span>Total buy-ins</span><strong id="totalBuyIns">0</strong></div>
+        </div>
+        <p id="accessBanner" class="access-banner"></p>
+      </section>
+
+      <section id="overviewPanel" class="overview-panel">
+        <section id="gameArea" hidden>
+          <section class="scoreboard card">
+            <div class="section-heading"><div><p class="step">PLAYER BUY-INS</p><h2>Buy-ins at a glance</h2></div><button id="newGame" class="text-button owner-only" type="button">Clear table</button></div>
+            <div id="standings" class="standings"></div>
+          </section>
+        </section>
+        <section id="overviewEmpty" class="empty-state card"><h2>Set up your table</h2><p>Choose Setup to set stakes and add at least two players.</p></section>
+      </section>
+
+      <nav id="tabBar" class="tab-bar" aria-label="Poker game actions" role="tablist">
+        <button class="tab-button owner-only" type="button" data-tab="setup" role="tab" aria-selected="false">Setup</button>
+        <button class="tab-button owner-only" type="button" data-tab="buyins" data-requires-game role="tab" aria-selected="false">Buy-ins</button>
+        <button class="tab-button owner-only" type="button" data-tab="closeout" data-requires-game role="tab" aria-selected="false">Close game</button>
+        <button id="resultsTab" class="tab-button" type="button" data-tab="results" role="tab" aria-selected="false" hidden>Results</button>
+      </nav>
+
+      <section class="tab-panel owner-only" data-panel="setup" role="tabpanel" hidden>
+        <section class="card settings-card">
+          <div class="section-heading"><div><p class="step">TABLE STAKES</p><h2>Set the chip value</h2></div><span class="rule">Locked after the game starts</span></div>
+          <form id="settingsForm" class="settings-form">
+            <label>Currency
+              <select id="currency" aria-label="Currency">
+                <option value="INR">INR — Indian rupee</option><option value="USD">USD — US dollar</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — Pound sterling</option><option value="AUD">AUD — Australian dollar</option><option value="CAD">CAD — Canadian dollar</option>
+              </select>
+            </label>
+            <label>Chips per buy-in<input id="chipsPerBuyIn" type="number" min="1" step="1" inputmode="numeric" required /></label>
+            <label>Value per buy-in<input id="buyInValue" type="number" min="0" step="0.01" inputmode="decimal" required /></label>
+            <button type="submit">Save stakes</button>
+          </form>
+          <p id="conversionHint" class="conversion-hint"></p>
+        </section>
+
+        <section class="card setup-card">
+          <div class="section-heading"><div><p class="step">PLAYERS</p><h2>Seat a player</h2></div><span class="rule">Late joins welcome</span></div>
+          <form id="playerForm" class="player-form">
+            <input id="playerName" maxlength="24" autocomplete="off" placeholder="Player name" aria-label="Player name" required />
+            <select id="initialBuyIns" aria-label="Starting buy-ins">
+              <option value="1">1 buy-in</option><option value="2">2 buy-ins</option><option value="3">3 buy-ins</option><option value="4">4 buy-ins</option><option value="5">5 buy-ins</option><option value="6">6 buy-ins</option><option value="7">7 buy-ins</option><option value="8">8 buy-ins</option><option value="9">9 buy-ins</option><option value="10">10 buy-ins</option>
+            </select>
+            <button type="submit">Add player</button>
+          </form>
+          <p class="form-hint">Choose the player’s total buy-ins. The app calculates chips automatically using the locked table value.</p>
+          <div id="playerChips" class="player-chips" aria-live="polite"></div>
+          <p id="setupHint" class="setup-hint">Add at least 2 players to start tracking the table.</p>
+        </section>
+      </section>
+
+      <section id="buyInsPanel" class="tab-panel owner-only" data-panel="buyins" role="tabpanel" hidden>
+        <section class="card buyin-card">
+          <div class="section-heading"><div><p class="step">BUY-IN</p><h2>Record extra buy-ins</h2></div><span class="round-note">Uses locked chip value</span></div>
+          <form id="buyInForm" class="buyin-form">
+            <select id="buyInPlayer" aria-label="Player receiving chips"></select>
+            <select id="extraBuyIns" aria-label="Number of extra buy-ins">
+              <option value="1">1 extra buy-in</option><option value="2">2 extra buy-ins</option><option value="3">3 extra buy-ins</option><option value="4">4 extra buy-ins</option><option value="5">5 extra buy-ins</option><option value="6">6 extra buy-ins</option><option value="7">7 extra buy-ins</option><option value="8">8 extra buy-ins</option><option value="9">9 extra buy-ins</option><option value="10">10 extra buy-ins</option>
+            </select>
+            <button type="submit">Add buy-in</button>
+          </form>
+          <p id="buyInHint" class="form-hint"></p>
+        </section>
+        <section class="history card">
+          <div class="section-heading"><div><p class="step">PLAYER BUY-INS</p><h2>Buy-ins by player</h2></div></div>
+          <div id="historyTable" class="history-table"></div>
+        </section>
+      </section>
+
+      <section id="closeoutPanel" class="tab-panel owner-only" data-panel="closeout" role="tabpanel" hidden>
+        <section class="card closeout-card">
+          <div class="section-heading"><div><p class="step">END THE GAME</p><h2>Enter final chip counts</h2></div><span class="round-note">You can edit later</span></div>
+          <p class="form-hint">Count each player’s chips at the end. Positive settlements collect; negative settlements pay.</p>
+          <form id="closeoutForm"><div id="closeoutInputs" class="round-inputs"></div><button class="primary save" type="submit">Save final counts <span>→</span></button></form>
+        </section>
+      </section>
+
+      <section id="settlementCard" class="settlement card tab-panel" data-panel="results" role="tabpanel" hidden>
+        <div class="section-heading"><div><p class="step">FINAL RESULTS</p><h2>Wins, losses, and payments</h2></div></div>
+        <div id="settlementList" class="settlement-list"></div>
+        <div class="payment-plan"><h3>Suggested payments</h3><div id="paymentPlan" class="payment-list"></div></div>
+        <p id="settlementCheck" class="settlement-check"></p>
+      </section>
+    </main>
+    <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js?v=21"></script>
+  </body>
+</html>
