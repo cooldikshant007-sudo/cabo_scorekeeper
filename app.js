@@ -43,8 +43,15 @@ async function renderLibrary() {
   list.innerHTML = data.map((game) => {
     const count = Array.isArray(game.state?.players) ? game.state.players.length : 0;
     const updated = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(game.updated_at));
-    return `<button class="library-game" type="button" data-game-id="${game.id}"><span><strong>${escapeHTML(game.title)}</strong><small>${count} players · updated ${updated}</small></span><b>Open</b></button>`;
+    return `<article class="library-game"><button class="library-open" type="button" data-game-id="${game.id}"><span><strong>${escapeHTML(game.title)}</strong><small>${count} players · updated ${updated}</small></span><b>Open</b></button><button class="library-delete" type="button" data-delete-game-id="${game.id}">Delete</button></article>`;
   }).join('');
+}
+async function deleteSavedGame(id) {
+  if (!accountUser || !confirm('Delete this saved Cabo game permanently? This cannot be undone.')) return;
+  const { error } = await db.from('cabo_account_games').delete().eq('id', id);
+  if (error) { setSyncStatus('Could not delete this game', 'error'); return; }
+  if (id === GAME_ID) { window.location.assign(window.location.pathname); return; }
+  await renderLibrary();
 }
 
 function renderSetup() {
@@ -145,7 +152,7 @@ $('#createAccount').onclick = async () => {
 };
 $('#signOut').onclick = async () => { await db.auth.signOut(); accountUser = null; activeGame = null; await refreshAuth(); };
 $('#startSavedGame').onclick = () => { if (accountUser) window.location.assign(window.location.pathname); };
-$('#gameLibrary').addEventListener('click', (event) => { const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}`); });
+$('#gameLibrary').addEventListener('click', (event) => { const remove = event.target.closest('[data-delete-game-id]'); if (remove) { deleteSavedGame(remove.dataset.deleteGameId); return; } const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}`); });
 $('#copyLink').onclick = async () => {
   if (!isOwner() || !activeGame?.viewer_token) return;
   const viewerURL = new URL(window.location.href); viewerURL.searchParams.set('view', '1'); viewerURL.searchParams.set('token', activeGame.viewer_token);
