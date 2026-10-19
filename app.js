@@ -31,7 +31,7 @@ function renderAccount() {
   $('#signedIn').hidden = !signedIn;
   $('#accountEmail').textContent = accountUser?.email || '';
   $('#accountStateSignedIn').textContent = 'Your games are saved to this account.';
-  $('#accountStateSignedOut').textContent = 'Sign in to save games and return to them later.';
+  $('#accountStateSignedOut').textContent = 'Create an account once, then return to every saved game whenever you like.';
 }
 async function renderLibrary() {
   const list = $('#gameLibrary');
@@ -131,10 +131,17 @@ async function refreshAuth() {
 }
 
 $('#signInForm').addEventListener('submit', async (event) => {
-  event.preventDefault(); const email = $('#emailInput').value.trim(); if (!email) return;
-  const { error } = await db.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}` } });
-  $('#authMessage').textContent = error ? error.message : 'Check your email for the sign-in link.';
+  event.preventDefault(); const email = $('#emailInput').value.trim(), password = $('#passwordInput').value;
+  if (!email || !password) return;
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  $('#authMessage').textContent = error ? error.message : 'Signed in successfully.';
 });
+$('#createAccount').onclick = async () => {
+  const email = $('#emailInput').value.trim(), password = $('#passwordInput').value;
+  if (!email || !password) { $('#authMessage').textContent = 'Enter an email address and a password of at least 8 characters.'; return; }
+  const { data, error } = await db.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}` } });
+  $('#authMessage').textContent = error ? error.message : data.session ? 'Account created and signed in.' : 'Account created. Confirm your email once, then sign in with your password.';
+};
 $('#signOut').onclick = async () => { await db.auth.signOut(); accountUser = null; activeGame = null; await refreshAuth(); };
 $('#startSavedGame').onclick = () => { if (accountUser) window.location.assign(window.location.pathname); };
 $('#gameLibrary').addEventListener('click', (event) => { const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}`); });
