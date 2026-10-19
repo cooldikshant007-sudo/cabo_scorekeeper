@@ -10,7 +10,7 @@
     <title>Poker Cash Game Tracker</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
-  <link rel="stylesheet" href="styles.css?v=23" />
+  <link rel="stylesheet" href="styles.css?v=24" />
   </head>
   <body>
     <main class="app-shell">
@@ -31,6 +31,29 @@
         </div>
         <p id="accessBanner" class="access-banner"></p>
         <button id="claimEditor" class="claim-editor" type="button" hidden>Set up this table</button>
+      </section>
+
+      <section id="accountCard" class="card account-card">
+        <div class="section-heading">
+          <div><p class="step">SAVED GAMES</p><h2>Your Poker account</h2></div>
+          <button id="signOut" class="text-button" type="button" hidden>Sign out</button>
+        </div>
+        <div id="signedOut">
+          <p class="account-copy">Sign in once to save Poker tables and return to them later.</p>
+          <form id="signInForm" class="sign-in-form">
+            <input id="emailInput" type="email" autocomplete="email" placeholder="you@example.com" aria-label="Email address" required />
+            <input id="passwordInput" type="password" autocomplete="current-password" minlength="8" placeholder="Password" aria-label="Password" required />
+            <button type="submit">Sign in</button>
+            <button id="createAccount" class="secondary-button" type="button">Create account</button>
+          </form>
+          <p id="authMessage" class="auth-message"></p>
+        </div>
+        <div id="signedIn" hidden>
+          <p class="account-copy">Your tables are saved to this account.</p>
+          <p class="account-email">Signed in as <strong id="accountEmail"></strong></p>
+          <div class="library-heading"><h3>Your saved tables</h3><button id="startSavedGame" type="button">Start a table</button></div>
+          <div id="gameLibrary" class="game-library"></div>
+        </div>
       </section>
 
       <section id="overviewPanel" class="overview-panel">
@@ -116,6 +139,6 @@
     </main>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=23"></script>
+  <script src="app.js?v=24"></script>
   </body>
 </html>
