@@ -79,8 +79,15 @@ async function renderLibrary() {
   list.innerHTML = data.map((saved) => {
     const count = Array.isArray(saved.state?.players) ? saved.state.players.length : 0;
     const updated = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(saved.updated_at));
-    return `<button class="library-game" type="button" data-game-id="${saved.id}"><span><strong>${escapeHTML(saved.title)}</strong><small>${count} players · updated ${updated}</small></span><b>Open</b></button>`;
+    return `<article class="library-game"><button class="library-open" type="button" data-game-id="${saved.id}"><span><strong>${escapeHTML(saved.title)}</strong><small>${count} players · updated ${updated}</small></span><b>Open</b></button><button class="library-delete" type="button" data-delete-game-id="${saved.id}">Delete</button></article>`;
   }).join('');
+}
+async function deleteSavedGame(id) {
+  if (!accountUser || !confirm('Delete this saved Poker table permanently? This cannot be undone.')) return;
+  const { error } = await db.from('poker_account_games').delete().eq('id', id);
+  if (error) { setSyncStatus('Could not delete this table', 'error'); return; }
+  if (id === GAME_ID) { window.location.assign(window.location.pathname); return; }
+  await renderLibrary();
 }
 
 function totalCashIn(player) { return player.initialChips + player.buyIns.reduce((total, buyIn) => total + buyIn.chips, 0); }
@@ -376,7 +383,7 @@ $('#createAccount').onclick = async () => {
 };
 $('#signOut').onclick = async () => { await db.auth.signOut(); accountUser = null; activeGame = null; await refreshAuth(); };
 $('#startSavedGame').onclick = () => { if (accountUser) window.location.assign(window.location.pathname); };
-$('#gameLibrary').addEventListener('click', (event) => { const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}`); });
+$('#gameLibrary').addEventListener('click', (event) => { const remove = event.target.closest('[data-delete-game-id]'); if (remove) { deleteSavedGame(remove.dataset.deleteGameId); return; } const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}`); });
 db.auth.onAuthStateChange((_event, session) => { if (!accountReady) return; accountUser = session?.user || null; renderAccount(); renderLibrary(); connectGame(); });
 
 loadGame(); render(); refreshAuth();
