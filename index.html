@@ -10,7 +10,7 @@
     <title>Cabo Scorekeeper</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
-    <link rel="stylesheet" href="styles.css?v=9" />
+    <link rel="stylesheet" href="styles.css?v=10" />
   </head>
   <body>
     <main class="app-shell">
@@ -21,11 +21,32 @@
         <p id="syncStatus" class="sync-status">Connecting to the live game…</p>
         <div class="room-controls">
           <span id="roomLabel">Share a read-only live link</span>
-          <button id="copyLink" class="share-button" type="button">Copy viewer link</button>
+          <button id="copyLink" class="share-button owner-only" type="button">Copy viewer link</button>
           <button id="newRoom" class="new-room-button owner-only" type="button">New game link</button>
         </div>
         <p id="accessBanner" class="access-banner"></p>
         <button id="claimEditor" class="claim-editor" type="button" hidden>Set up this game</button>
+      </section>
+
+      <section id="accountCard" class="card account-card">
+        <div class="section-heading">
+          <div><p class="step">SAVED GAMES</p><h2>Your Cabo account</h2></div>
+          <button id="signOut" class="text-button" type="button" hidden>Sign out</button>
+        </div>
+        <div id="signedOut">
+          <p id="accountStateSignedOut" class="account-copy">Sign in to save games and return to them later.</p>
+          <form id="signInForm" class="sign-in-form">
+            <input id="emailInput" type="email" autocomplete="email" placeholder="you@example.com" aria-label="Email address" required />
+            <button type="submit">Email me a sign-in link</button>
+          </form>
+          <p id="authMessage" class="auth-message"></p>
+        </div>
+        <div id="signedIn" hidden>
+          <p id="accountStateSignedIn" class="account-copy"></p>
+          <p class="account-email">Signed in as <strong id="accountEmail"></strong></p>
+          <div class="library-heading"><h3>Your saved games</h3><button id="startSavedGame" type="button">Start a game</button></div>
+          <div id="gameLibrary" class="game-library"></div>
+        </div>
       </section>
 
       <section id="setupCard" class="card setup-card owner-only">
@@ -75,6 +96,6 @@
     </main>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=9"></script>
+    <script src="app.js?v=10"></script>
   </body>
 </html>
