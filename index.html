@@ -10,7 +10,7 @@
     <title>Cabo Scorekeeper</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
-    <link rel="stylesheet" href="styles.css?v=10" />
+    <link rel="stylesheet" href="styles.css?v=11" />
   </head>
   <body>
     <main class="app-shell">
@@ -34,10 +34,12 @@
           <button id="signOut" class="text-button" type="button" hidden>Sign out</button>
         </div>
         <div id="signedOut">
-          <p id="accountStateSignedOut" class="account-copy">Sign in to save games and return to them later.</p>
+          <p id="accountStateSignedOut" class="account-copy">Create an account once, then return to every saved game whenever you like.</p>
           <form id="signInForm" class="sign-in-form">
             <input id="emailInput" type="email" autocomplete="email" placeholder="you@example.com" aria-label="Email address" required />
-            <button type="submit">Email me a sign-in link</button>
+            <input id="passwordInput" type="password" autocomplete="current-password" minlength="8" placeholder="Password" aria-label="Password" required />
+            <button type="submit">Sign in</button>
+            <button id="createAccount" class="secondary-button" type="button">Create account</button>
           </form>
           <p id="authMessage" class="auth-message"></p>
         </div>
@@ -96,6 +98,6 @@
     </main>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=10"></script>
+    <script src="app.js?v=11"></script>
   </body>
 </html>
