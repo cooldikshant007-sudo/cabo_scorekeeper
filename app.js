@@ -1,5 +1,6 @@
 const $ = (s) => document.querySelector(s);
 const SUPABASE_URL = 'https://jpcdbtaztovxmqruvktv.supabase.co';
+const APP_URL = 'https://cooldikshant007-sudo.github.io/cabo_scorekeeper/';
 const db = window.supabase.createClient(SUPABASE_URL, 'sb_publishable_y7nZtPY1snx7_GSAExxhLw_j9xaOoxy');
 const params = new URLSearchParams(window.location.search);
 const viewMode = params.get('view') === '1';
@@ -139,7 +140,7 @@ $('#signInForm').addEventListener('submit', async (event) => {
 $('#createAccount').onclick = async () => {
   const email = $('#emailInput').value.trim(), password = $('#passwordInput').value;
   if (!email || !password) { $('#authMessage').textContent = 'Enter an email address and a password of at least 8 characters.'; return; }
-  const { data, error } = await db.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}` } });
+  const { data, error } = await db.auth.signUp({ email, password, options: { emailRedirectTo: APP_URL } });
   $('#authMessage').textContent = error ? error.message : data.session ? 'Account created and signed in.' : 'Account created. Confirm your email once, then sign in with your password.';
 };
 $('#signOut').onclick = async () => { await db.auth.signOut(); accountUser = null; activeGame = null; await refreshAuth(); };
