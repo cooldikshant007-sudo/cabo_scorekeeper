@@ -10,7 +10,7 @@
     <title>Cabo Scorekeeper</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
-    <link rel="stylesheet" href="styles.css?v=13" />
+    <link rel="stylesheet" href="styles.css?v=14" />
   </head>
   <body>
     <main class="app-shell">
@@ -24,7 +24,7 @@
           <button id="copyLink" class="share-button owner-only" type="button">Copy viewer link</button>
           <button id="newRoom" class="new-room-button owner-only" type="button">New game link</button>
         </div>
-        <p id="accessBanner" class="access-banner"></p>
+        <div class="game-name-bar"><span class="game-name-caption">CURRENT GAME</span><strong id="currentGameName">Loading game…</strong><button id="renameGame" class="share-button" type="button" hidden>✎ Rename</button></div><p id="accessBanner" class="access-banner"></p>
         <button id="claimEditor" class="claim-editor" type="button" hidden>Set up this game</button>
       </section>
 
@@ -98,6 +98,6 @@
     </main>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
   </body>
 </html>
