@@ -25,6 +25,23 @@ async function saveGame() {
   if (error) setSyncStatus('Could not save your game', 'error');
 }
 
+function renderGameName() {
+  const name = $('#currentGameName');
+  if (name) name.textContent = activeGame?.title || 'Untitled game';
+  const edit = $('#renameGame');
+  if (edit) edit.hidden = !isOwner();
+}
+async function renameSavedGame(id, existingTitle) {
+  if (!accountUser) return;
+  const proposed = prompt('Name this game:', existingTitle || 'Game');
+  if (proposed === null) return;
+  const title = proposed.trim().slice(0, 80);
+  if (!title) { alert('Please enter a game name.'); return; }
+  const { data, error } = await db.from('cabo_account_games').update({ title, updated_at: new Date().toISOString() }).eq('id', id).eq('owner_user_id', accountUser.id).select('id,title').single();
+  if (error || !data) { setSyncStatus('Could not rename this game', 'error'); return; }
+  if (id === GAME_ID && activeGame) { activeGame.title = data.title; renderGameName(); }
+  await renderLibrary();
+}
 function renderAccount() {
   const signedIn = Boolean(accountUser);
   $('#accountCard').hidden = viewMode;
@@ -43,7 +60,7 @@ async function renderLibrary() {
   list.innerHTML = data.map((game) => {
     const count = Array.isArray(game.state?.players) ? game.state.players.length : 0;
     const updated = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(game.updated_at));
-    return `<article class="library-game"><button class="library-open" type="button" data-game-id="${game.id}"><span><strong>${escapeHTML(game.title)}</strong><small>${count} players · updated ${updated}</small></span><b>Open</b></button><button class="library-delete" type="button" data-delete-game-id="${game.id}">Delete</button></article>`;
+    return `<article class="library-game"><button class="library-open" type="button" data-game-id="${game.id}"><span><strong>${escapeHTML(game.title)}</strong><small>${count} players · updated ${updated}</small></span><b>Open</b></button><button class="library-rename" type="button" data-rename-game-id="${game.id}">Rename</button><button class="library-delete" type="button" data-delete-game-id="${game.id}">Delete</button></article>`;
   }).join('');
 }
 async function deleteSavedGame(id) {
@@ -75,6 +92,7 @@ function showCorrectScreen() {
   $('#gameArea').hidden = !showGame;
   if (showGame) renderGame(); else renderSetup();
   renderAccount();
+  renderGameName();
 }
 function renderGame() {
   const editable = isOwner(), scoreTotals = totals();
@@ -152,7 +170,8 @@ $('#createAccount').onclick = async () => {
 };
 $('#signOut').onclick = async () => { await db.auth.signOut(); accountUser = null; activeGame = null; await refreshAuth(); };
 $('#startSavedGame').onclick = () => { if (accountUser) window.location.assign(window.location.pathname); };
-$('#gameLibrary').addEventListener('click', (event) => { const remove = event.target.closest('[data-delete-game-id]'); if (remove) { deleteSavedGame(remove.dataset.deleteGameId); return; } const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}`); });
+$('#renameGame').onclick = () => { if (isOwner()) renameSavedGame(GAME_ID, activeGame?.title); };
+$('#gameLibrary').addEventListener('click', (event) => { const rename = event.target.closest('[data-rename-game-id]'); if (rename) { const id = rename.dataset.renameGameId; const title = rename.closest('.library-game')?.querySelector('strong')?.textContent; renameSavedGame(id, title); return; } const remove = event.target.closest('[data-delete-game-id]'); if (remove) { deleteSavedGame(remove.dataset.deleteGameId); return; } const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}`); });
 $('#copyLink').onclick = async () => {
   if (!isOwner() || !activeGame?.viewer_token) return;
   const viewerURL = new URL(window.location.href); viewerURL.searchParams.set('view', '1'); viewerURL.searchParams.set('token', activeGame.viewer_token);
