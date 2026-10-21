@@ -71,6 +71,7 @@
 
       <nav id="tabBar" class="tab-bar" aria-label="Poker game actions" role="tablist">
         <button class="tab-button owner-only" type="button" data-tab="setup" role="tab" aria-selected="false">Setup</button>
+        <button class="tab-button owner-only" type="button" data-tab="seat" role="tab" aria-selected="false">Seat players</button>
         <button class="tab-button owner-only" type="button" data-tab="buyins" data-requires-game role="tab" aria-selected="false">Buy-ins</button>
         <button class="tab-button owner-only" type="button" data-tab="closeout" data-requires-game role="tab" aria-selected="false">Close game</button>
         <button id="resultsTab" class="tab-button" type="button" data-tab="results" role="tab" aria-selected="false" hidden>Results</button>
@@ -91,7 +92,9 @@
           </form>
           <p id="conversionHint" class="conversion-hint"></p>
         </section>
+      </section>
 
+      <section class="tab-panel owner-only" data-panel="seat" role="tabpanel" hidden>
         <section class="card setup-card">
           <div class="section-heading"><div><p class="step">PLAYERS</p><h2>Seat a player</h2></div><span class="rule">Late joins welcome</span></div>
           <form id="playerForm" class="player-form">
@@ -142,6 +145,6 @@
     </main>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=29"></script>
+  <script src="app.js?v=30"></script>
   </body>
 </html>
