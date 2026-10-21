@@ -226,7 +226,7 @@ function renderTabs(ready) {
   $('#tabBar').hidden = !isOwner() && !complete;
   if (!isOwner()) activeTab = complete ? 'results' : '';
   if (isOwner() && !complete && activeTab === 'results') activeTab = 'setup';
-  if (isOwner() && !ready && ['buyins', 'closeout'].includes(activeTab)) activeTab = 'setup';
+  if (isOwner() && !ready && ['buyins', 'closeout'].includes(activeTab)) activeTab = 'seat';
   showTab(activeTab);
 }
 
