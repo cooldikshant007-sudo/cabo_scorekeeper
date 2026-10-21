@@ -108,6 +108,7 @@ function showCorrectScreen() {
   document.body.classList.toggle('game-active', gameStarted || (!owner && players.length >= 2));
   $('#accessBanner').textContent = owner ? 'Saved to your account · only you can update scores.' : legacyGame ? 'Legacy game · sign in to claim and save it to your account.' : 'Live viewer access · scores update automatically.';
   const showGame = gameStarted || (!owner && players.length >= 2);
+  $('#toggleGameInfo').hidden = !showGame;
   $('#setupCard').hidden = !owner || showGame;
   $('#gameArea').hidden = !showGame;
   if (showGame) renderGame(); else renderSetup();
@@ -204,6 +205,7 @@ $('#newRoom').onclick = () => { if (isOwner()) window.location.assign(window.loc
 $('#backCommunity').onclick = () => {
   window.location.assign(location.protocol === 'file:' ? '../community-hub/index.html' : 'community/');
 };
+$('#toggleGameInfo').onclick = () => { document.body.classList.toggle('info-open'); $('#toggleGameInfo').textContent = document.body.classList.contains('info-open') ? 'Hide game info' : 'Game info'; };
 $('#assignCommunity').onclick = async () => {
   if (!isOwner()) return;
   const communityId = $('#communityPicker').value;
