@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c111d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Cabo Online" />
+    <title>Cabo Online</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <a class="back" href="../">‹ Scorekeeper</a>
+        <p class="eyebrow">CABO ONLINE</p>
+        <h1>Play the table,<br />wherever you are.</h1>
+        <p id="status" class="status">Sign in to create or join a private room.</p>
+      </header>
+
+      <section id="auth" class="panel auth-panel">
+        <h2>Your account</h2>
+        <p>Use the same email account as your scorekeeper. Your cards stay private.</p>
+        <form id="authForm" class="stack">
+          <input id="email" type="email" autocomplete="email" placeholder="Email address" required />
+          <input id="password" type="password" minlength="8" autocomplete="current-password" placeholder="Password (8+ characters)" required />
+          <button type="submit">Sign in</button>
+          <button id="createAccount" type="button" class="secondary">Create account</button>
+        </form>
+      </section>
+
+      <section id="home" hidden>
+        <div class="account-bar"><span id="accountEmail"></span><button id="signOut" class="quiet">Sign out</button></div>
+        <div class="choice-grid">
+          <section class="panel">
+            <p class="eyebrow">NEW ROOM</p>
+            <h2>Host a game</h2>
+            <form id="createForm" class="stack compact">
+              <input id="createName" maxlength="32" placeholder="Your player name" required />
+              <button>Create private room</button>
+            </form>
+          </section>
+          <section class="panel">
+            <p class="eyebrow">JOIN ROOM</p>
+            <h2>Play with friends</h2>
+            <form id="joinForm" class="stack compact">
+              <input id="joinCode" maxlength="6" autocapitalize="characters" placeholder="Room code" required />
+              <input id="joinName" maxlength="32" placeholder="Your player name" required />
+              <button>Join room</button>
+            </form>
+          </section>
+        </div>
+        <section class="panel saved-panel"><div class="section-row"><h2>Your online rooms</h2><button id="refreshRooms" class="quiet">Refresh</button></div><div id="roomList" class="room-list"></div></section>
+      </section>
+
+      <section id="game" hidden>
+        <div class="room-top">
+          <button id="leaveRoom" class="quiet">‹ Rooms</button>
+          <span>ROOM <strong id="roomCode"></strong></span>
+          <button id="copyCode" class="quiet">Copy code</button>
+        </div>
+        <section id="lobby" class="panel" hidden>
+          <p class="eyebrow">WAITING ROOM</p>
+          <h2>Invite your friends</h2>
+          <p>Share room code <strong id="lobbyCode"></strong>. Up to 6 players can join.</p>
+          <div id="lobbyPlayers" class="player-list"></div>
+          <button id="startGame" hidden>Deal cards</button>
+          <p id="lobbyHint" class="muted"></p>
+        </section>
+        <section id="table" hidden>
+          <section class="panel table-head">
+            <div><p class="eyebrow">LIVE TABLE</p><h2 id="turnLabel">Loading…</h2></div>
+            <button id="callCabo" class="cabo" hidden>Call Cabo</button>
+          </section>
+          <div id="lastRound" class="notice" hidden></div>
+          <section class="table-actions">
+            <button id="drawDeck" class="deck" disabled><span>DRAW</span><b id="deckCount">—</b></button>
+            <div class="discard"><span>DISCARD</span><b id="discardCard">?</b></div>
+            <div id="drawnCard" class="drawn" hidden></div>
+          </section>
+          <section id="drawActions" class="panel action-panel" hidden>
+            <h3>Choose this card</h3>
+            <p>Replace one of your cards, or discard it.</p>
+            <div id="replaceChoices" class="card-buttons"></div>
+            <button id="discardDraw" class="secondary wide">Discard drawn card</button>
+          </section>
+          <section id="powerPanel" class="panel action-panel" hidden></section>
+          <section class="panel hand-panel"><div class="section-row"><div><p class="eyebrow">YOUR HAND</p><h2>Remember what you know</h2></div><span id="myTurnBadge" class="badge"></span></div><div id="myHand" class="cards"></div></section>
+          <section class="panel players-panel"><div class="section-row"><div><p class="eyebrow">TABLE</p><h2>Other players</h2></div><button id="matchToggle" class="quiet">Match throw</button></div><div id="matchPanel" hidden></div><div id="otherPlayers" class="opponents"></div></section>
+        </section>
+        <section id="finished" class="panel finished" hidden></section>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
