@@ -1,4 +1,5 @@
 const SUPABASE_URL = 'https://jpcdbtaztovxmqruvktv.supabase.co';
+const ONLINE_URL = 'https://cooldikshant007-sudo.github.io/cabo_scorekeeper/online/';
 const db = window.supabase.createClient(SUPABASE_URL, 'sb_publishable_y7nZtPY1snx7_GSAExxhLw_j9xaOoxy');
 const $ = (s) => document.querySelector(s);
 const state = { user: null, game: null, roomId: new URLSearchParams(location.search).get('room'), timer: null, message: '' };
@@ -52,12 +53,22 @@ function renderPower(view) {
 }
 async function act(payload) { try { const data = await api({ op:'action', gameId:state.roomId, ...payload }); state.game = data; state.message = data.message || ''; renderGame(); setStatus(state.message || 'Table updated.'); } catch (e) { setStatus(e.message); } }
 $('#authForm').onsubmit = async (e) => { e.preventDefault(); const { error } = await db.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value }); setStatus(error ? error.message : 'Signed in.'); if (!error) init(); };
-$('#createAccount').onclick = async () => { const { error } = await db.auth.signUp({ email: $('#email').value.trim(), password: $('#password').value }); setStatus(error ? error.message : 'Account created. Check email only if confirmation is enabled, then sign in.'); };
+$('#createAccount').onclick = async () => {
+  const email = $('#email').value.trim();
+  const { data, error } = await db.auth.signUp({
+    email,
+    password: $('#password').value,
+    options: { emailRedirectTo: ONLINE_URL },
+  });
+  if (error) { setStatus(error.message); return; }
+  if (data.session) { setStatus('Account created and signed in.'); init(); return; }
+  setStatus(`Confirmation email sent to ${email}. Open it, then return here and sign in.`);
+};
 $('#signOut').onclick = async () => { await db.auth.signOut(); location.reload(); };
 $('#createForm').onsubmit = async (e) => { e.preventDefault(); try { const data = await api({ op:'create', name:$('#createName').value }); state.game = data; await openRoom(data.game.id); } catch (err) { setStatus(err.message); } };
 $('#joinForm').onsubmit = async (e) => { e.preventDefault(); try { const data = await api({ op:'join', code:$('#joinCode').value, name:$('#joinName').value }); state.game = data; await openRoom(data.game.id); } catch (err) { setStatus(err.message); } };
 $('#refreshRooms').onclick = loadRooms; $('#leaveRoom').onclick = showHome; $('#copyCode').onclick = async () => { await navigator.clipboard.writeText(state.game?.game.code || ''); setStatus('Room code copied.'); };
 $('#startGame').onclick = async () => { try { state.game = await api({ op:'start', gameId:state.roomId }); renderGame(); setStatus('Cards dealt.'); } catch (e) { setStatus(e.message); } };
 $('#drawDeck').onclick = () => act({ action:'draw' }); $('#discardDraw').onclick = () => act({ action:'discard' }); $('#callCabo').onclick = () => act({ action:'call_cabo' }); $('#matchToggle').onclick = () => $('#matchPanel').hidden = !$('#matchPanel').hidden;
-async function init() { const { data:{ user } } = await db.auth.getUser(); state.user = user; $('#auth').hidden = !!user; $('#home').hidden = !user; if (!user) return; $('#accountEmail').textContent = user.email; if (state.roomId) { $('#game').hidden = false; $('#home').hidden = true; await refreshGame(); startPolling(); } else showHome(); }
+async function init() { const { data:{ user } } = await db.auth.getUser(); state.user = user; $('#auth').hidden = !!user; $('#home').hidden = !user; if (!user) { if (location.protocol === 'file:') setStatus('This is a local preview. Open the hosted Online Cabo link to create an account and play.'); return; } $('#accountEmail').textContent = user.email; if (state.roomId) { $('#game').hidden = false; $('#home').hidden = true; await refreshGame(); startPolling(); } else showHome(); }
 init();
