@@ -285,6 +285,9 @@ $('#copyUpdateText').onclick = async () => {
   } catch { $('#copyUpdateText').textContent = 'Copy unavailable'; }
 };
 $('#newRoom').onclick = () => { if (isOwner()) window.location.assign(window.location.pathname); };
+$('#backCommunity').onclick = () => {
+  window.location.assign(location.protocol === 'file:' ? '../community-hub/index.html' : '../community/');
+};
 $('#claimEditor').onclick = () => {
   return;
 };
