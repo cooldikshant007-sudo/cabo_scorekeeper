@@ -30,6 +30,7 @@ let activeGame = null;
 let legacyGame = false;
 let accountReady = false;
 let viewerPoll = null;
+let accountCollapsed = true;
 
 function makeId() { return crypto.randomUUID().slice(0, 12); }
 function number(value, fallback = 0) { const result = Number(value); return Number.isFinite(result) ? result : fallback; }
@@ -73,7 +74,9 @@ async function syncCommunityGame() {
 function pokerTitle() { return `Poker table · ${new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date())}`; }
 function renderAccount() {
   const signedIn = Boolean(accountUser);
-  $('#accountCard').hidden = viewMode;
+  $('#accountCard').hidden = viewMode || (signedIn && accountCollapsed);
+  $('#accountToggle').hidden = viewMode || !signedIn;
+  $('#accountToggle').textContent = accountCollapsed ? 'My tables' : 'Hide tables';
   $('#signedOut').hidden = signedIn;
   $('#signedIn').hidden = !signedIn;
   $('#signOut').hidden = !signedIn;
@@ -299,6 +302,7 @@ $('#newRoom').onclick = () => { if (isOwner()) window.location.assign(window.loc
 $('#backCommunity').onclick = () => {
   window.location.assign(location.protocol === 'file:' ? '../community-hub/index.html' : '../community/');
 };
+$('#accountToggle').onclick = () => { accountCollapsed = !accountCollapsed; document.body.classList.toggle('account-open', !accountCollapsed); renderAccount(); };
 $('#toggleGameInfo').onclick = () => { document.body.classList.toggle('info-open'); $('#toggleGameInfo').textContent = document.body.classList.contains('info-open') ? 'Hide game info' : 'Game info'; };
 $('#claimEditor').onclick = () => {
   return;
