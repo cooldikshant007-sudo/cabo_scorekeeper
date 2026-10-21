@@ -10,13 +10,13 @@ const requestedCommunityId = params.get('community');
 const GAME_ID = /^[a-z0-9-]{3,64}$/.test(suppliedGameId || '') ? suppliedGameId : `cabo-${crypto.randomUUID().slice(0, 12)}`;
 if (!suppliedGameId) { params.set('game', GAME_ID); window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`); }
 
-let players = [], rounds = [], editingRound = null, gameStarted = false;
+let players = [], rounds = [], editingRound = null, gameStarted = false, gameFinished = false;
 let accountUser = null, activeGame = null, legacyGame = false, accountReady = false, viewerPoll = null;
 
 function setSyncStatus(message, state = '') { const status = $('#syncStatus'); status.textContent = message; status.className = `sync-status ${state}`; }
 function isOwner() { return Boolean(!viewMode && accountUser && activeGame?.owner_user_id === accountUser.id); }
-function currentState() { return { players, rounds, started: gameStarted }; }
-function hydrate(state) { players = Array.isArray(state?.players) ? state.players : []; rounds = Array.isArray(state?.rounds) ? state.rounds : []; gameStarted = Boolean(state?.started) || rounds.length > 0; editingRound = null; }
+function currentState() { return { players, rounds, started: gameStarted, completed: gameFinished }; }
+function hydrate(state) { players = Array.isArray(state?.players) ? state.players : []; rounds = Array.isArray(state?.rounds) ? state.rounds : []; gameStarted = Boolean(state?.started) || rounds.length > 0; gameFinished = Boolean(state?.completed); editingRound = null; }
 function escapeHTML(value) { const div = document.createElement('div'); div.textContent = value; return div.innerHTML; }
 function gameTitle() { return `Cabo game · ${new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date())}`; }
 
@@ -46,7 +46,7 @@ async function renameSavedGame(id, existingTitle) {
 }
 async function syncCommunityGame() {
   if (!isOwner() || !activeGame?.community_id) return;
-  const { error } = await db.from('community_games').upsert({ source_game_id: GAME_ID, community_id: activeGame.community_id, game_type: 'cabo', owner_user_id: accountUser.id, title: activeGame.title || gameTitle(), state: currentState(), completed: gameStarted && rounds.length > 0, currency: null, updated_at: new Date().toISOString() }, { onConflict: 'source_game_id' });
+  const { error } = await db.from('community_games').upsert({ source_game_id: GAME_ID, community_id: activeGame.community_id, game_type: 'cabo', owner_user_id: accountUser.id, title: activeGame.title || gameTitle(), state: currentState(), completed: gameFinished, currency: null, updated_at: new Date().toISOString() }, { onConflict: 'source_game_id' });
   if (error) setSyncStatus('Saved, but could not update the community', 'error');
 }
 
@@ -103,7 +103,9 @@ function showCorrectScreen() {
   renderGameName();
 }
 function renderGame() {
-  const editable = isOwner(), scoreTotals = totals();
+  const editable = isOwner() && !gameFinished, scoreTotals = totals();
+  $('#endGame').hidden = !isOwner() || gameFinished;
+  $('#roundForm').querySelectorAll('input, button').forEach((element) => { element.disabled = !editable; });
   const order = players.map((name, i) => ({ name, i, total: scoreTotals[i] })).sort((a, b) => a.total - b.total || a.name.localeCompare(b.name));
   $('#standings').innerHTML = order.map((p, rank) => `<article class="standing ${rank === 0 ? 'leader' : ''}"><span class="rank">#${rank + 1}${rank === 0 ? ' · LEADING' : ''}</span><span class="standing-name">${escapeHTML(p.name)}</span><span class="total">${p.total}</span><span class="total-label">points total</span></article>`).join('');
   $('#roundTitle').textContent = `Round ${rounds.length + 1}`;
@@ -191,16 +193,17 @@ $('#backCommunity').onclick = () => {
 };
 const playerForm = $('#playerForm'), playerName = $('#playerName');
 playerForm.addEventListener('submit', (event) => { event.preventDefault(); const name = playerName.value.trim(); if (!isOwner() || !name) return; addPlayer(name); playerName.value = ''; saveGame(); renderSetup(); playerName.focus(); });
-$('#startGame').onclick = () => { if (!isOwner() || players.length < 2) return; gameStarted = true; saveGame(); showCorrectScreen(); };
-$('#roundForm').addEventListener('submit', (event) => { event.preventDefault(); if (!isOwner()) return; rounds.push(players.map((_, i) => Number($(`#score-${i}`).value))); saveGame(); renderGame(); });
+$('#startGame').onclick = () => { if (!isOwner() || players.length < 2) return; gameStarted = true; gameFinished = false; saveGame(); showCorrectScreen(); };
+$('#roundForm').addEventListener('submit', (event) => { event.preventDefault(); if (!isOwner() || gameFinished) return; rounds.push(players.map((_, i) => Number($(`#score-${i}`).value))); saveGame(); renderGame(); });
 $('#historyTable').addEventListener('click', (event) => {
-  if (!isOwner()) return;
+  if (!isOwner() || gameFinished) return;
   const edit = event.target.closest('[data-edit-round]'), save = event.target.closest('[data-save-round]');
   if (event.target.closest('[data-cancel-edit]')) { editingRound = null; renderGame(); return; }
   if (edit) { editingRound = Number(edit.dataset.editRound); renderGame(); return; }
   if (save) { const round = Number(save.dataset.saveRound), scores = players.map((_, i) => Number($(`#edit-${round}-${i}`).value)); if (scores.some(Number.isNaN)) return; rounds[round] = scores; editingRound = null; saveGame(); renderGame(); }
 });
-$('#undoRound').onclick = () => { if (!isOwner()) return; rounds.pop(); editingRound = null; saveGame(); renderGame(); };
+$('#undoRound').onclick = () => { if (!isOwner() || gameFinished) return; rounds.pop(); editingRound = null; saveGame(); renderGame(); };
+$('#endGame').onclick = () => { if (!isOwner() || gameFinished || !rounds.length) return; if (confirm('End this game and add its final scores to the community?')) { gameFinished = true; saveGame(); renderGame(); } };
 $('#newGame').onclick = () => { if (!isOwner()) return; if (confirm('Clear this game’s scores? The saved game link will remain.')) { hydrate({}); saveGame(); showCorrectScreen(); playerName.focus(); } };
 db.auth.onAuthStateChange((_event, session) => { if (!accountReady) return; accountUser = session?.user || null; renderAccount(); renderLibrary(); connectGame(); });
 refreshAuth();
