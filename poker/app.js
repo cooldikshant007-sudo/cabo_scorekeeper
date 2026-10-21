@@ -251,6 +251,7 @@ function render() {
   $('#totalChips').textContent = game.players.reduce((total, player) => total + totalCashIn(player), 0).toLocaleString();
   $('#totalBuyIns').textContent = game.players.reduce((total, player) => total + buyInCount(player), 0).toLocaleString();
   const ready = game.players.length >= 2;
+  document.body.classList.toggle('game-active', ready);
   $('#gameArea').hidden = !ready;
   if (ready) { renderStandings(); renderBuyInOptions(); renderHistory(); renderCloseout(); }
   renderSettlement();
