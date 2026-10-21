@@ -50,6 +50,17 @@ async function syncCommunityGame() {
   if (error) setSyncStatus('Saved, but could not update the community', 'error');
 }
 
+async function renderCommunityPicker() {
+  const picker = $('#communityPicker'), button = $('#assignCommunity');
+  if (!isOwner()) { picker.hidden = true; button.hidden = true; return; }
+  const { data, error } = await db.from('communities').select('id,name').order('created_at', { ascending: false });
+  if (error || !data?.length) { picker.hidden = true; button.hidden = true; return; }
+  picker.innerHTML = data.map((community) => `<option value="${community.id}">${escapeHTML(community.name)}</option>`).join('');
+  picker.value = activeGame?.community_id || data[0].id;
+  picker.hidden = false; button.hidden = false;
+  button.textContent = activeGame?.community_id ? 'Change community' : 'Add to community';
+}
+
 function renderAccount() {
   const signedIn = Boolean(accountUser);
   $('#accountCard').hidden = viewMode;
@@ -100,6 +111,7 @@ function showCorrectScreen() {
   $('#gameArea').hidden = !showGame;
   if (showGame) renderGame(); else renderSetup();
   renderAccount();
+  renderCommunityPicker();
   renderGameName();
 }
 function renderGame() {
@@ -190,6 +202,17 @@ $('#copyLink').onclick = async () => {
 $('#newRoom').onclick = () => { if (isOwner()) window.location.assign(window.location.pathname); };
 $('#backCommunity').onclick = () => {
   window.location.assign(location.protocol === 'file:' ? '../community-hub/index.html' : 'community/');
+};
+$('#assignCommunity').onclick = async () => {
+  if (!isOwner()) return;
+  const communityId = $('#communityPicker').value;
+  if (!communityId) return;
+  const { error } = await db.from('cabo_account_games').update({ community_id: communityId, updated_at: new Date().toISOString() }).eq('id', GAME_ID);
+  if (error) { setSyncStatus('Could not add this game to the community', 'error'); return; }
+  activeGame.community_id = communityId;
+  await syncCommunityGame();
+  setSyncStatus('Added to your community', 'live');
+  renderCommunityPicker();
 };
 const playerForm = $('#playerForm'), playerName = $('#playerName');
 playerForm.addEventListener('submit', (event) => { event.preventDefault(); const name = playerName.value.trim(); if (!isOwner() || !name) return; addPlayer(name); playerName.value = ''; saveGame(); renderSetup(); playerName.focus(); });
