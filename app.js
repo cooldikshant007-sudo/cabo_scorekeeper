@@ -178,6 +178,9 @@ $('#copyLink').onclick = async () => {
   try { await navigator.clipboard.writeText(viewerURL.href); $('#copyLink').textContent = 'Copied!'; setTimeout(() => { $('#copyLink').textContent = 'Copy viewer link'; }, 1600); } catch { $('#copyLink').textContent = 'Copy unavailable'; }
 };
 $('#newRoom').onclick = () => { if (isOwner()) window.location.assign(window.location.pathname); };
+$('#backCommunity').onclick = () => {
+  window.location.assign(location.protocol === 'file:' ? '../community-hub/index.html' : 'community/');
+};
 const playerForm = $('#playerForm'), playerName = $('#playerName');
 playerForm.addEventListener('submit', (event) => { event.preventDefault(); const name = playerName.value.trim(); if (!isOwner() || !name) return; addPlayer(name); playerName.value = ''; saveGame(); renderSetup(); playerName.focus(); });
 $('#startGame').onclick = () => { if (!isOwner() || players.length < 2) return; gameStarted = true; saveGame(); showCorrectScreen(); };
