@@ -42,3 +42,5 @@ body::before,.hero::after,.card::after { display:none; }.app-shell { width:min(9
 
 /* High-contrast scores */
 .total{color:#fff!important;text-shadow:0 1px 10px #0a84ff66}.standing-name,.history-table td,.history-table th,.score-field label{color:#fff}.score-field input{color:#fff!important;background:#09090b!important;border-color:#5a5a66!important}.total-label,.rank,.history-table th{color:#c7c7cc!important}.standing{background:#202024!important}.standing.leader{background:linear-gradient(135deg,#123c66,#182a40)!important}.history-table tbody tr:hover{background:#282830!important}
+
+.game-info-toggle{display:none}.game-active .game-info-toggle{display:inline-flex;align-items:center;min-height:32px;margin:0 0 9px;padding:6px 10px;color:#7dd3fc;background:#10233a;border:1px solid #1e3a5f;border-radius:9px;font-size:12px;box-shadow:none}.game-active .sync-status,.game-active .room-controls{display:none}.game-active.info-open .sync-status{display:inline-flex}.game-active.info-open .room-controls{display:flex}
