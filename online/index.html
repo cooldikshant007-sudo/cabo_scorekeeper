@@ -19,21 +19,8 @@
         <p id="status" class="status">Sign in to create or join a private room.</p>
       </header>
 
-      <section id="auth" class="panel auth-panel">
-        <h2>Your account</h2>
-        <p>Use the same email account as your scorekeeper. Your cards stay private.</p>
-        <form id="authForm" class="stack">
-          <input id="email" type="email" autocomplete="email" placeholder="Email address" required />
-          <input id="password" type="password" minlength="8" autocomplete="current-password" placeholder="Password (8+ characters)" required />
-          <button type="submit">Sign in</button>
-          <button id="createAccount" type="button" class="secondary">Create account</button>
-          <button id="playGuest" type="button" class="secondary">Play as guest</button>
-          <p class="muted">Guest mode needs no email. Keep using this browser to keep your seat in a room.</p>
-        </form>
-      </section>
-
       <section id="home" hidden>
-        <div class="account-bar"><span id="accountEmail"></span><button id="signOut" class="quiet">Sign out</button></div>
+        <div class="account-bar"><span id="accountEmail"></span><button id="newGuest" class="quiet">New guest</button></div>
         <div class="choice-grid">
           <section class="panel">
             <p class="eyebrow">NEW ROOM</p>
