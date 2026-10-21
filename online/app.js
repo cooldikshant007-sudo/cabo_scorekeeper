@@ -1,5 +1,4 @@
 const SUPABASE_URL = 'https://jpcdbtaztovxmqruvktv.supabase.co';
-const ONLINE_URL = 'https://cooldikshant007-sudo.github.io/cabo_scorekeeper/online/';
 const db = window.supabase.createClient(SUPABASE_URL, 'sb_publishable_y7nZtPY1snx7_GSAExxhLw_j9xaOoxy');
 const $ = (s) => document.querySelector(s);
 const state = { user: null, guest: false, game: null, roomId: new URLSearchParams(location.search).get('room'), timer: null, message: '' };
@@ -11,10 +10,7 @@ function guestId() { let id = localStorage.getItem('cabo-online-guest-id'); if (
 function cardText(card) { if (!card) return '?'; const [s, rank] = card.split(':'); return `${rank}${suit[s] || ''}`; }
 function cardClass(card) { return /^(H|D):/.test(card || '') ? ' red' : ''; }
 async function api(payload) {
-  const { data: { session } } = await db.auth.getSession();
-  const headers = { 'Content-Type': 'application/json' };
-  if (session) headers.Authorization = `Bearer ${session.access_token}`;
-  else headers['X-Guest-ID'] = guestId();
+  const headers = { 'Content-Type': 'application/json', 'X-Guest-ID': guestId() };
   const response = await fetch(`${SUPABASE_URL}/functions/v1/online-cabo`, { method: 'POST', headers, body: JSON.stringify(payload) });
   const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Could not reach the table.'); return data;
 }
@@ -55,24 +51,11 @@ function renderPower(view) {
   $('#usePower').onclick = () => act({ action:'power', targetPlayerId: $('#powerTarget').value, targetSlot:Number($('#powerTargetSlot').value), ...(rank === 'Q' || rank === 'K' ? { mySlot:Number($('#powerMySlot').value) } : {}) });
 }
 async function act(payload) { try { const data = await api({ op:'action', gameId:state.roomId, ...payload }); state.game = data; state.message = data.message || ''; renderGame(); setStatus(state.message || 'Table updated.'); } catch (e) { setStatus(e.message); } }
-$('#authForm').onsubmit = async (e) => { e.preventDefault(); const { error } = await db.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value }); setStatus(error ? error.message : 'Signed in.'); if (!error) init(); };
-$('#playGuest').onclick = async () => { state.guest = true; guestId(); $('#auth').hidden = true; $('#accountEmail').textContent = 'Guest player'; if (state.roomId) await openRoom(state.roomId); else { $('#home').hidden = false; showHome(); } };
-$('#createAccount').onclick = async () => {
-  const email = $('#email').value.trim();
-  const { data, error } = await db.auth.signUp({
-    email,
-    password: $('#password').value,
-    options: { emailRedirectTo: ONLINE_URL },
-  });
-  if (error) { setStatus(error.message); return; }
-  if (data.session) { setStatus('Account created and signed in.'); init(); return; }
-  setStatus(`Confirmation email sent to ${email}. Open it, then return here and sign in.`);
-};
-$('#signOut').onclick = async () => { await db.auth.signOut(); location.reload(); };
+$('#newGuest').onclick = () => { if (!confirm('Start fresh as a new guest? You will no longer be able to reopen rooms from this browser.')) return; localStorage.removeItem('cabo-online-guest-id'); location.assign(location.pathname); };
 $('#createForm').onsubmit = async (e) => { e.preventDefault(); try { const data = await api({ op:'create', name:$('#createName').value }); state.game = data; await openRoom(data.game.id); } catch (err) { setStatus(err.message); } };
 $('#joinForm').onsubmit = async (e) => { e.preventDefault(); try { const data = await api({ op:'join', code:$('#joinCode').value, name:$('#joinName').value }); state.game = data; await openRoom(data.game.id); } catch (err) { setStatus(err.message); } };
 $('#refreshRooms').onclick = loadRooms; $('#leaveRoom').onclick = showHome; $('#copyCode').onclick = async () => { await navigator.clipboard.writeText(state.game?.game.code || ''); setStatus('Room code copied.'); };
 $('#startGame').onclick = async () => { try { state.game = await api({ op:'start', gameId:state.roomId }); renderGame(); setStatus('Cards dealt.'); } catch (e) { setStatus(e.message); } };
 $('#drawDeck').onclick = () => act({ action:'draw' }); $('#discardDraw').onclick = () => act({ action:'discard' }); $('#callCabo').onclick = () => act({ action:'call_cabo' }); $('#matchToggle').onclick = () => $('#matchPanel').hidden = !$('#matchPanel').hidden;
-async function init() { const { data:{ user } } = await db.auth.getUser(); state.user = user; $('#auth').hidden = !!user; $('#home').hidden = !user; if (!user) { if (location.protocol === 'file:') setStatus('This is a local preview. Open the hosted Online Cabo link to play with friends.'); return; } $('#accountEmail').textContent = user.email; if (state.roomId) { $('#game').hidden = false; $('#home').hidden = true; await refreshGame(); startPolling(); } else showHome(); }
+async function init() { state.guest = true; guestId(); $('#accountEmail').textContent = 'Guest player'; if (state.roomId) { $('#game').hidden = false; $('#home').hidden = true; await refreshGame(); startPolling(); } else { $('#home').hidden = false; showHome(); } }
 init();
