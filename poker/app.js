@@ -3,8 +3,9 @@ const params = new URLSearchParams(window.location.search);
 const suppliedGameId = params.get('game');
 const viewMode = params.get('view') === '1';
 const viewerToken = params.get('token');
+const requestedCommunityId = params.get('community');
 const GAME_ID = /^[a-z0-9-]{3,64}$/.test(suppliedGameId || '') ? suppliedGameId : `poker-${crypto.randomUUID().slice(0, 12)}`;
-if (!suppliedGameId) window.history.replaceState({}, '', `${window.location.pathname}?game=${GAME_ID}`);
+if (!suppliedGameId) { params.set('game', GAME_ID); window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`); }
 const STORAGE_KEY = `poker-cash-game-${GAME_ID}`;
 const DEVICE_KEY = 'poker-cash-game-editor-device';
 const DEVICE_ID = localStorage.getItem(DEVICE_KEY) || crypto.randomUUID();
@@ -58,7 +59,15 @@ async function saveGame() {
   if (!isOwner()) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(game));
   const { error } = await db.from('poker_account_games').update({ state: game, updated_at: new Date().toISOString() }).eq('id', GAME_ID);
-  if (error) setSyncStatus('Could not save your table', 'error');
+  if (error) { setSyncStatus('Could not save your table', 'error'); return; }
+  await syncCommunityGame();
+}
+
+async function syncCommunityGame() {
+  if (!isOwner() || !activeGame?.community_id) return;
+  const completed = game.players.length > 0 && game.players.every(hasFinal);
+  const { error } = await db.from('community_games').upsert({ source_game_id: GAME_ID, community_id: activeGame.community_id, game_type: 'poker', owner_user_id: accountUser.id, title: activeGame.title || pokerTitle(), state: game, completed, currency: game.settings.currency, updated_at: new Date().toISOString() }, { onConflict: 'source_game_id' });
+  if (error) setSyncStatus('Saved, but could not update the community', 'error');
 }
 
 function pokerTitle() { return `Poker table · ${new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date())}`; }
@@ -73,13 +82,13 @@ function renderAccount() {
 async function renderLibrary() {
   const list = $('#gameLibrary');
   if (!accountUser) { list.innerHTML = ''; return; }
-  const { data, error } = await db.from('poker_account_games').select('id,title,updated_at,state').order('updated_at', { ascending: false }).limit(20);
+  const { data, error } = await db.from('poker_account_games').select('id,title,updated_at,state,community_id').order('updated_at', { ascending: false }).limit(20);
   if (error) { list.innerHTML = '<p class="library-empty">Could not load your saved tables.</p>'; return; }
   if (!data?.length) { list.innerHTML = '<p class="library-empty">No saved tables yet. Start one whenever you are ready.</p>'; return; }
   list.innerHTML = data.map((saved) => {
     const count = Array.isArray(saved.state?.players) ? saved.state.players.length : 0;
     const updated = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(saved.updated_at));
-    return `<article class="library-game"><button class="library-open" type="button" data-game-id="${saved.id}"><span><strong>${escapeHTML(saved.title)}</strong><small>${count} players · updated ${updated}</small></span><b>Open</b></button><button class="library-delete" type="button" data-delete-game-id="${saved.id}">Delete</button></article>`;
+    return `<article class="library-game"><button class="library-open" type="button" data-game-id="${saved.id}" data-community-id="${saved.community_id || ''}"><span><strong>${escapeHTML(saved.title)}</strong><small>${count} players · updated ${updated}</small></span><b>Open</b></button><button class="library-delete" type="button" data-delete-game-id="${saved.id}">Delete</button></article>`;
   }).join('');
 }
 async function deleteSavedGame(id) {
@@ -336,9 +345,9 @@ function stopLiveConnections() { db.removeAllChannels(); if (viewerPoll) { clear
 async function createAccountGame(initialState = game) {
   if (!accountUser) return;
   const state = normaliseState(initialState); state.ownerId = DEVICE_ID;
-  const { data, error } = await db.from('poker_account_games').insert({ id: GAME_ID, owner_user_id: accountUser.id, title: pokerTitle(), state }).select('id,owner_user_id,title,state,viewer_token,updated_at').single();
+  const { data, error } = await db.from('poker_account_games').insert({ id: GAME_ID, owner_user_id: accountUser.id, title: pokerTitle(), state, community_id: requestedCommunityId || null }).select('id,owner_user_id,title,state,viewer_token,community_id,updated_at').single();
   if (error) { setSyncStatus(error.code === '23505' ? 'This table belongs to another account' : 'Could not save your new table', 'error'); return; }
-  activeGame = data; legacyGame = false; game = normaliseState(data.state); liveStateLoaded = true; subscribeOwner(); setSyncStatus('Saved to your account', 'live'); render(); renderLibrary();
+  activeGame = data; legacyGame = false; game = normaliseState(data.state); liveStateLoaded = true; subscribeOwner(); await syncCommunityGame(); setSyncStatus('Saved to your account', 'live'); render(); renderLibrary();
 }
 function subscribeOwner() {
   if (!isOwner()) return;
@@ -353,7 +362,7 @@ async function connectGame() {
   stopLiveConnections();
   if (viewMode && viewerToken) { await fetchViewerGame(); viewerPoll = setInterval(fetchViewerGame, 4000); return; }
   if (accountUser) {
-    const { data, error } = await db.from('poker_account_games').select('id,owner_user_id,title,state,viewer_token,updated_at').eq('id', GAME_ID).maybeSingle();
+    const { data, error } = await db.from('poker_account_games').select('id,owner_user_id,title,state,viewer_token,community_id,updated_at').eq('id', GAME_ID).maybeSingle();
     if (error) { setSyncStatus('Could not load your saved table', 'error'); return; }
     if (data) { activeGame = data; legacyGame = false; game = normaliseState(data.state); liveStateLoaded = true; subscribeOwner(); setSyncStatus('Saved to your account', 'live'); render(); return; }
     if (!suppliedGameId) { await createAccountGame(defaultState()); return; }
@@ -386,7 +395,7 @@ $('#createAccount').onclick = async () => {
 };
 $('#signOut').onclick = async () => { await db.auth.signOut(); accountUser = null; activeGame = null; await refreshAuth(); };
 $('#startSavedGame').onclick = () => { if (accountUser) window.location.assign(window.location.pathname); };
-$('#gameLibrary').addEventListener('click', (event) => { const remove = event.target.closest('[data-delete-game-id]'); if (remove) { deleteSavedGame(remove.dataset.deleteGameId); return; } const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}`); });
+$('#gameLibrary').addEventListener('click', (event) => { const remove = event.target.closest('[data-delete-game-id]'); if (remove) { deleteSavedGame(remove.dataset.deleteGameId); return; } const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}${button.dataset.communityId ? `&community=${encodeURIComponent(button.dataset.communityId)}` : ''}`); });
 db.auth.onAuthStateChange((_event, session) => { if (!accountReady) return; accountUser = session?.user || null; renderAccount(); renderLibrary(); connectGame(); });
 
 loadGame(); render(); refreshAuth();
