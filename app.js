@@ -6,8 +6,9 @@ const params = new URLSearchParams(window.location.search);
 const viewMode = params.get('view') === '1';
 const suppliedGameId = params.get('game');
 const viewerToken = params.get('token');
+const requestedCommunityId = params.get('community');
 const GAME_ID = /^[a-z0-9-]{3,64}$/.test(suppliedGameId || '') ? suppliedGameId : `cabo-${crypto.randomUUID().slice(0, 12)}`;
-if (!suppliedGameId) window.history.replaceState({}, '', `${window.location.pathname}?game=${GAME_ID}`);
+if (!suppliedGameId) { params.set('game', GAME_ID); window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`); }
 
 let players = [], rounds = [], editingRound = null, gameStarted = false;
 let accountUser = null, activeGame = null, legacyGame = false, accountReady = false, viewerPoll = null;
@@ -22,7 +23,8 @@ function gameTitle() { return `Cabo game · ${new Intl.DateTimeFormat(undefined,
 async function saveGame() {
   if (!isOwner()) return;
   const { error } = await db.from('cabo_account_games').update({ state: currentState(), updated_at: new Date().toISOString() }).eq('id', GAME_ID);
-  if (error) setSyncStatus('Could not save your game', 'error');
+  if (error) { setSyncStatus('Could not save your game', 'error'); return; }
+  await syncCommunityGame();
 }
 
 function renderGameName() {
@@ -42,6 +44,12 @@ async function renameSavedGame(id, existingTitle) {
   if (id === GAME_ID && activeGame) { activeGame.title = data.title; renderGameName(); }
   await renderLibrary();
 }
+async function syncCommunityGame() {
+  if (!isOwner() || !activeGame?.community_id) return;
+  const { error } = await db.from('community_games').upsert({ source_game_id: GAME_ID, community_id: activeGame.community_id, game_type: 'cabo', owner_user_id: accountUser.id, title: activeGame.title || gameTitle(), state: currentState(), completed: gameStarted && rounds.length > 0, currency: null, updated_at: new Date().toISOString() }, { onConflict: 'source_game_id' });
+  if (error) setSyncStatus('Saved, but could not update the community', 'error');
+}
+
 function renderAccount() {
   const signedIn = Boolean(accountUser);
   $('#accountCard').hidden = viewMode;
@@ -54,13 +62,13 @@ function renderAccount() {
 async function renderLibrary() {
   const list = $('#gameLibrary');
   if (!accountUser) { list.innerHTML = ''; return; }
-  const { data, error } = await db.from('cabo_account_games').select('id,title,updated_at,state').order('updated_at', { ascending: false }).limit(20);
+  const { data, error } = await db.from('cabo_account_games').select('id,title,updated_at,state,community_id').order('updated_at', { ascending: false }).limit(20);
   if (error) { list.innerHTML = '<p class="library-empty">Could not load your saved games.</p>'; return; }
   if (!data?.length) { list.innerHTML = '<p class="library-empty">No saved games yet. Start one whenever you are ready.</p>'; return; }
   list.innerHTML = data.map((game) => {
     const count = Array.isArray(game.state?.players) ? game.state.players.length : 0;
     const updated = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(game.updated_at));
-    return `<article class="library-game"><button class="library-open" type="button" data-game-id="${game.id}"><span><strong>${escapeHTML(game.title)}</strong><small>${count} players · updated ${updated}</small></span><b>Open</b></button><button class="library-rename" type="button" data-rename-game-id="${game.id}">Rename</button><button class="library-delete" type="button" data-delete-game-id="${game.id}">Delete</button></article>`;
+    return `<article class="library-game"><button class="library-open" type="button" data-game-id="${game.id}" data-community-id="${game.community_id || ''}"><span><strong>${escapeHTML(game.title)}</strong><small>${count} players · updated ${updated}</small></span><b>Open</b></button><button class="library-rename" type="button" data-rename-game-id="${game.id}">Rename</button><button class="library-delete" type="button" data-delete-game-id="${game.id}">Delete</button></article>`;
   }).join('');
 }
 async function deleteSavedGame(id) {
@@ -119,9 +127,9 @@ function addPlayer(name) {
 
 async function createAccountGame(initialState = currentState()) {
   if (!accountUser) return;
-  const { data, error } = await db.from('cabo_account_games').insert({ id: GAME_ID, owner_user_id: accountUser.id, title: gameTitle(), state: initialState }).select('id,owner_user_id,title,state,viewer_token,updated_at').single();
+  const { data, error } = await db.from('cabo_account_games').insert({ id: GAME_ID, owner_user_id: accountUser.id, title: gameTitle(), state: initialState, community_id: requestedCommunityId || null }).select('id,owner_user_id,title,state,viewer_token,community_id,updated_at').single();
   if (error) { setSyncStatus(error.code === '23505' ? 'This game belongs to another account' : 'Could not create your saved game', 'error'); return; }
-  activeGame = data; legacyGame = false; hydrate(data.state); subscribeOwner(); setSyncStatus('Saved to your account', 'live'); showCorrectScreen(); renderLibrary();
+  activeGame = data; legacyGame = false; hydrate(data.state); subscribeOwner(); await syncCommunityGame(); setSyncStatus('Saved to your account', 'live'); showCorrectScreen(); renderLibrary();
 }
 function stopLiveConnections() { db.removeAllChannels(); if (viewerPoll) { clearInterval(viewerPoll); viewerPoll = null; } }
 function subscribeOwner() {
@@ -137,7 +145,7 @@ async function connectGame() {
   stopLiveConnections();
   if (viewMode && viewerToken) { await fetchViewerGame(); viewerPoll = setInterval(fetchViewerGame, 4000); return; }
   if (accountUser) {
-    const { data, error } = await db.from('cabo_account_games').select('id,owner_user_id,title,state,viewer_token,updated_at').eq('id', GAME_ID).maybeSingle();
+    const { data, error } = await db.from('cabo_account_games').select('id,owner_user_id,title,state,viewer_token,community_id,updated_at').eq('id', GAME_ID).maybeSingle();
     if (error) { setSyncStatus('Could not load your saved game', 'error'); return; }
     if (data) { activeGame = data; legacyGame = false; hydrate(data.state); subscribeOwner(); setSyncStatus('Saved to your account', 'live'); showCorrectScreen(); return; }
     if (!suppliedGameId) { await createAccountGame({ players: [], rounds: [], started: false }); return; }
@@ -171,7 +179,7 @@ $('#createAccount').onclick = async () => {
 $('#signOut').onclick = async () => { await db.auth.signOut(); accountUser = null; activeGame = null; await refreshAuth(); };
 $('#startSavedGame').onclick = () => { if (accountUser) window.location.assign(window.location.pathname); };
 $('#renameGame').onclick = () => { if (isOwner()) renameSavedGame(GAME_ID, activeGame?.title); };
-$('#gameLibrary').addEventListener('click', (event) => { const rename = event.target.closest('[data-rename-game-id]'); if (rename) { const id = rename.dataset.renameGameId; const title = rename.closest('.library-game')?.querySelector('strong')?.textContent; renameSavedGame(id, title); return; } const remove = event.target.closest('[data-delete-game-id]'); if (remove) { deleteSavedGame(remove.dataset.deleteGameId); return; } const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}`); });
+$('#gameLibrary').addEventListener('click', (event) => { const rename = event.target.closest('[data-rename-game-id]'); if (rename) { const id = rename.dataset.renameGameId; const title = rename.closest('.library-game')?.querySelector('strong')?.textContent; renameSavedGame(id, title); return; } const remove = event.target.closest('[data-delete-game-id]'); if (remove) { deleteSavedGame(remove.dataset.deleteGameId); return; } const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}${button.dataset.communityId ? `&community=${encodeURIComponent(button.dataset.communityId)}` : ''}`); });
 $('#copyLink').onclick = async () => {
   if (!isOwner() || !activeGame?.viewer_token) return;
   const viewerURL = new URL(window.location.href); viewerURL.searchParams.set('view', '1'); viewerURL.searchParams.set('token', activeGame.viewer_token);
