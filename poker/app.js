@@ -251,6 +251,7 @@ function render() {
   $('#totalChips').textContent = game.players.reduce((total, player) => total + totalCashIn(player), 0).toLocaleString();
   $('#totalBuyIns').textContent = game.players.reduce((total, player) => total + buyInCount(player), 0).toLocaleString();
   const ready = game.players.length >= 2;
+  $('#toggleGameInfo').hidden = !ready;
   document.body.classList.toggle('game-active', ready);
   $('#gameArea').hidden = !ready;
   if (ready) { renderStandings(); renderBuyInOptions(); renderHistory(); renderCloseout(); }
@@ -298,6 +299,7 @@ $('#newRoom').onclick = () => { if (isOwner()) window.location.assign(window.loc
 $('#backCommunity').onclick = () => {
   window.location.assign(location.protocol === 'file:' ? '../community-hub/index.html' : '../community/');
 };
+$('#toggleGameInfo').onclick = () => { document.body.classList.toggle('info-open'); $('#toggleGameInfo').textContent = document.body.classList.contains('info-open') ? 'Hide game info' : 'Game info'; };
 $('#claimEditor').onclick = () => {
   return;
 };
