@@ -65,3 +65,16 @@ body{background:radial-gradient(circle at 18% 0,#172554 0,transparent 31rem),#09
 .viewer-mode .top-summary strong { color:#fff; }
 .viewer-mode .payment-row,.viewer-mode .settlement-row,.viewer-mode .buyin-total-card { color:#fff; background:#27272a; border-color:#71717a; }
 .viewer-mode .payment-row b,.viewer-mode .settlement-row strong { color:#fff; }
+
+
+/* Buy-in player cards and controls: readable on the dark poker theme. */
+.buyin-card,.buyin-card .section-heading,.buyin-card h2,.buyin-card h3 { color:#f8fafc; }
+.buyin-card { background:#18181b; border-color:#52525b; }
+.buyin-card .buyin-total-card,.buyin-card .player-chip,.buyin-card .score-field { color:#f8fafc; background:#27272a!important; border-color:#71717a!important; }
+.buyin-card .buyin-total-card>span,.buyin-card .player-chip,.buyin-card .score-field label { color:#fff!important; }
+.buyin-card .buyin-total-card label,.buyin-card .form-hint,.buyin-card .conversion-hint,.buyin-card .empty { color:#e4e4e7!important; }
+.buyin-card input,.buyin-card select { color:#fff!important; background:#09090b!important; border:1px solid #71717a!important; }
+.buyin-card input::placeholder { color:#a1a1aa; opacity:1; }
+.buyin-card .buyin-total-card select { color:#fff!important; background:#18181b!important; }
+.buyin-card .player-chip button { color:#fff; background:#1d4ed8; }
+.viewer-mode .buyin-total-grid .buyin-total-card,.viewer-mode .buyin-total-card>span,.viewer-mode .buyin-total-card label { color:#f8fafc!important; }
