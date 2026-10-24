@@ -90,3 +90,20 @@ body{background:radial-gradient(circle at 18% 0,#172554 0,transparent 31rem),#09
 .history .section-heading h2,.history .history-table td,.history .history-table th { color:#f8fafc!important; }
 .history .history-table tbody tr:hover { background:#27272a; }
 #buyInPlayer,#extraBuyIns { color:#fff!important; background:#18181b!important; border-color:#71717a!important; }
+
+/* Fix iOS native select white-on-white in the actual player buy-in cards. */
+.buyin-total-card select,
+.buyin-total-grid select,
+select[id*="buyin" i] {
+  color:#111827!important;
+  -webkit-text-fill-color:#111827!important;
+  background:#ffffff!important;
+  border:2px solid #94a3b8!important;
+  color-scheme:light;
+  text-shadow:none!important;
+  opacity:1!important;
+}
+.buyin-total-card select option,
+.buyin-total-grid select option { color:#111827!important; background:#fff!important; }
+.buyin-total-card label { color:#cbd5e1!important; }
+.buyin-total-card>span { color:#fff!important; }
