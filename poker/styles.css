@@ -78,3 +78,15 @@ body{background:radial-gradient(circle at 18% 0,#172554 0,transparent 31rem),#09
 .buyin-card .buyin-total-card select { color:#fff!important; background:#18181b!important; }
 .buyin-card .player-chip button { color:#fff; background:#1d4ed8; }
 .viewer-mode .buyin-total-grid .buyin-total-card,.viewer-mode .buyin-total-card>span,.viewer-mode .buyin-total-card label { color:#f8fafc!important; }
+
+/* Actual player buy-in overview lives inside .scoreboard, not .buyin-card. */
+.scoreboard.card { background:#18181b!important; color:#f8fafc!important; }
+.scoreboard .section-heading h2,.scoreboard .step,.scoreboard .standings,.scoreboard .standings * { color:#f8fafc; }
+.scoreboard .overview-table td,.scoreboard .overview-table th { color:#f8fafc!important; text-shadow:none; }
+.scoreboard .overview-table td:nth-child(2) { color:#93c5fd!important; }
+.scoreboard .overview-table td:last-child { color:#e4e4e7!important; }
+.scoreboard .overview-table tbody tr:hover { background:#27272a; }
+.history.card { background:#18181b!important; color:#f8fafc!important; }
+.history .section-heading h2,.history .history-table td,.history .history-table th { color:#f8fafc!important; }
+.history .history-table tbody tr:hover { background:#27272a; }
+#buyInPlayer,#extraBuyIns { color:#fff!important; background:#18181b!important; border-color:#71717a!important; }
