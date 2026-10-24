@@ -107,3 +107,6 @@ select[id*="buyin" i] {
 .buyin-total-grid select option { color:#111827!important; background:#fff!important; }
 .buyin-total-card label { color:#cbd5e1!important; }
 .buyin-total-card>span { color:#fff!important; }
+
+/* iPhone buy-in picker: explicit dark foreground on white control. */
+.history .buyin-total-grid .buyin-total-card select.buyin-total-select { color:#111827!important; -webkit-text-fill-color:#111827!important; background-color:#fff!important; color-scheme:light!important; text-shadow:none!important; }
