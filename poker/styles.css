@@ -46,3 +46,22 @@ body{background:radial-gradient(circle at 18% 0,#172554 0,transparent 31rem),#09
 .game-info-toggle{display:none}.game-active .game-info-toggle{display:inline-flex;align-items:center;min-height:32px;margin:0 0 9px;padding:6px 10px;color:#7dd3fc;background:#10233a;border:1px solid #1e3a5f;border-radius:9px;font-size:12px;box-shadow:none}.game-active .sync-status,.game-active .room-controls,.game-active .top-summary{display:none}.game-active.info-open .sync-status{display:inline-flex}.game-active.info-open .room-controls{display:flex}.game-active.info-open .top-summary{display:grid}
 
 .game-active.account-open .account-card{display:block!important}.account-open .account-card{margin-top:12px}
+
+
+/* High-contrast read-only poker view: dark surfaces must never inherit light-theme ink. */
+.viewer-mode { --ink:#f8fafc; --muted:#cbd5e1; --line:#475569; --blue-dark:#93c5fd; }
+.viewer-mode .card,.viewer-mode .scoreboard.card,.viewer-mode .settlement.card { color:#f8fafc; background:#18181b; border-color:#52525b; }
+.viewer-mode h2,.viewer-mode h3,.viewer-mode p,.viewer-mode .section-heading,.viewer-mode .viewer-player-card span,.viewer-mode .overview-table td:first-child { color:#f8fafc; }
+.viewer-mode .viewer-player-card { color:#f8fafc; background:#27272a; border:1px solid #71717a; }
+.viewer-mode .viewer-player-card strong { color:#93c5fd; }
+.viewer-mode .viewer-player-card small,.viewer-mode .access-banner,.viewer-mode .empty,.viewer-mode .step { color:#d4d4d8; }
+.viewer-mode .overview-table td,.viewer-mode .history-table td,.viewer-mode .history-table th { color:#f8fafc; border-color:#52525b; }
+.viewer-mode .overview-table tbody tr:hover,.viewer-mode .history-table tbody tr:hover { background:#27272a; }
+.viewer-mode .tab-button { color:#e4e4e7; }
+.viewer-mode .tab-button.is-active { color:#fff; background:#0a84ff; }
+.viewer-mode .tab-button:disabled { color:#a1a1aa; }
+.viewer-mode .rule,.viewer-mode .round-note,.viewer-mode .sync-status { color:#bfdbfe; background:#172554; border-color:#3b82f6; }
+.viewer-mode .top-summary span { color:#e4e4e7; }
+.viewer-mode .top-summary strong { color:#fff; }
+.viewer-mode .payment-row,.viewer-mode .settlement-row,.viewer-mode .buyin-total-card { color:#fff; background:#27272a; border-color:#71717a; }
+.viewer-mode .payment-row b,.viewer-mode .settlement-row strong { color:#fff; }
