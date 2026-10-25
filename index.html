@@ -23,7 +23,7 @@
         <div class="room-controls">
           <span id="roomLabel">Share a read-only live link</span>
           <button id="copyLink" class="share-button owner-only" type="button">Copy viewer link</button>
-          <button id="newRoom" class="new-room-button owner-only" type="button">New game link</button>
+          <button id="newRoom" class="new-room-button owner-only" type="button">Start a new game</button>
           <button id="backCommunity" class="new-room-button" type="button">Communities</button>
           <select id="communityPicker" class="owner-only" aria-label="Community for this game" hidden></select>
           <button id="assignCommunity" class="new-room-button owner-only" type="button" hidden>Add to community</button>
@@ -50,7 +50,7 @@
         <div id="signedIn" hidden>
           <p id="accountStateSignedIn" class="account-copy"></p>
           <p class="account-email">Signed in as <strong id="accountEmail"></strong></p>
-          <div class="library-heading"><h3>Your saved games</h3><button id="startSavedGame" type="button">Start a game</button></div>
+          <div class="library-heading"><h3>Your saved games</h3><button id="startSavedGame" type="button">Start a new game</button></div>
           <div id="gameLibrary" class="game-library"></div>
         </div>
       </section>
@@ -75,7 +75,7 @@
         <section class="scoreboard card">
           <div class="section-heading">
             <div><p class="step">02 — SCOREBOARD</p><h2>Current standings</h2></div>
-            <div><button id="endGame" class="text-button owner-only" type="button">End game</button><button id="newGame" class="text-button owner-only">New game</button></div>
+            <div><button id="endGame" class="text-button owner-only" type="button">End game</button><button id="newGame" class="text-button owner-only">Start a new game</button></div>
           </div>
           <div id="standings" class="standings"></div>
         </section>
@@ -102,6 +102,6 @@
     </main>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=14"></script>
+    <script src="app.js?v=16"></script>
   </body>
 </html>
