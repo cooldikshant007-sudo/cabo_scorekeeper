@@ -8,7 +8,7 @@ const suppliedGameId = params.get('game');
 const viewerToken = params.get('token');
 const requestedCommunityId = params.get('community');
 const GAME_ID = /^[a-z0-9-]{3,64}$/.test(suppliedGameId || '') ? suppliedGameId : `cabo-${crypto.randomUUID().slice(0, 12)}`;
-if (!suppliedGameId) { params.set('game', GAME_ID); window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`); }
+// Do not assign a game URL until the user explicitly creates a game.
 
 let players = [], rounds = [], editingRound = null, gameStarted = false, gameFinished = false;
 let accountUser = null, activeGame = null, legacyGame = false, accountReady = false, viewerPoll = null;
@@ -18,7 +18,7 @@ function isOwner() { return Boolean(!viewMode && accountUser && activeGame?.owne
 function currentState() { return { players, rounds, started: gameStarted, completed: gameFinished }; }
 function hydrate(state) { players = Array.isArray(state?.players) ? state.players : []; rounds = Array.isArray(state?.rounds) ? state.rounds : []; gameStarted = Boolean(state?.started) || rounds.length > 0; gameFinished = Boolean(state?.completed); editingRound = null; }
 function escapeHTML(value) { const div = document.createElement('div'); div.textContent = value; return div.innerHTML; }
-function gameTitle() { return `Cabo game · ${new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date())}`; }
+function gameTitle() { const d = new Date(); return `cabo_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
 async function saveGame() {
   if (!isOwner()) return;
@@ -141,9 +141,9 @@ function addPlayer(name) {
   let suffix = 1; while (used.has(suffix)) suffix += 1; players.push(`${baseName}-${suffix}`);
 }
 
-async function createAccountGame(initialState = currentState()) {
+async function createAccountGame(initialState = currentState(), title = gameTitle()) {
   if (!accountUser) return;
-  const { data, error } = await db.from('cabo_account_games').insert({ id: GAME_ID, owner_user_id: accountUser.id, title: gameTitle(), state: initialState, community_id: requestedCommunityId || null }).select('id,owner_user_id,title,state,viewer_token,community_id,updated_at').single();
+  const { data, error } = await db.from('cabo_account_games').insert({ id: GAME_ID, owner_user_id: accountUser.id, title, state: initialState, community_id: requestedCommunityId || null }).select('id,owner_user_id,title,state,viewer_token,community_id,updated_at').single();
   if (error) { setSyncStatus(error.code === '23505' ? 'This game belongs to another account' : 'Could not create your saved game', 'error'); return; }
   activeGame = data; legacyGame = false; hydrate(data.state); subscribeOwner(); await syncCommunityGame(); setSyncStatus('Saved to your account', 'live'); showCorrectScreen(); renderLibrary();
 }
@@ -164,7 +164,7 @@ async function connectGame() {
     const { data, error } = await db.from('cabo_account_games').select('id,owner_user_id,title,state,viewer_token,community_id,updated_at').eq('id', GAME_ID).maybeSingle();
     if (error) { setSyncStatus('Could not load your saved game', 'error'); return; }
     if (data) { activeGame = data; legacyGame = false; hydrate(data.state); subscribeOwner(); setSyncStatus('Saved to your account', 'live'); showCorrectScreen(); return; }
-    if (!suppliedGameId) { await createAccountGame({ players: [], rounds: [], started: false }); return; }
+    if (!suppliedGameId) { activeGame = null; hydrate({}); setSyncStatus('Select Start a new game to begin'); showCorrectScreen(); return; }
     const legacy = await db.from('cabo_games').select('state').eq('id', GAME_ID).maybeSingle();
     if (legacy.data?.state && !viewMode) { hydrate(legacy.data.state); await createAccountGame(currentState()); return; }
     setSyncStatus('This game belongs to another account. Use its viewer link.', 'error'); showCorrectScreen(); return;
@@ -193,7 +193,8 @@ $('#createAccount').onclick = async () => {
   $('#authMessage').textContent = error ? error.message : data.session ? 'Account created and signed in.' : 'Account created. Confirm your email once, then sign in with your password.';
 };
 $('#signOut').onclick = async () => { await db.auth.signOut(); accountUser = null; activeGame = null; await refreshAuth(); };
-$('#startSavedGame').onclick = () => { if (accountUser) window.location.assign(window.location.pathname); };
+async function startNamedGame() { if (!accountUser || viewMode) return; const proposed = prompt('Enter a name for your new game:', gameTitle()); if (proposed === null) return; const title = proposed.trim().slice(0,80); if (!title) { alert('Please enter a game name.'); return; } const id = `cabo-${crypto.randomUUID().slice(0,12)}`; const { error } = await db.from('cabo_account_games').insert({ id, owner_user_id: accountUser.id, title, state: { players: [], rounds: [], started: false }, community_id: requestedCommunityId || null }); if (error) { setSyncStatus('Could not create your game', 'error'); return; } window.location.assign(`${window.location.pathname}?game=${id}`); }
+$('#startSavedGame').onclick = startNamedGame;
 $('#renameGame').onclick = () => { if (isOwner()) renameSavedGame(GAME_ID, activeGame?.title); };
 $('#gameLibrary').addEventListener('click', (event) => { const rename = event.target.closest('[data-rename-game-id]'); if (rename) { const id = rename.dataset.renameGameId; const title = rename.closest('.library-game')?.querySelector('strong')?.textContent; renameSavedGame(id, title); return; } const remove = event.target.closest('[data-delete-game-id]'); if (remove) { deleteSavedGame(remove.dataset.deleteGameId); return; } const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}${button.dataset.communityId ? `&community=${encodeURIComponent(button.dataset.communityId)}` : ''}`); });
 $('#copyLink').onclick = async () => {
@@ -201,7 +202,7 @@ $('#copyLink').onclick = async () => {
   const viewerURL = new URL(window.location.href); viewerURL.searchParams.set('view', '1'); viewerURL.searchParams.set('token', activeGame.viewer_token);
   try { await navigator.clipboard.writeText(viewerURL.href); $('#copyLink').textContent = 'Copied!'; setTimeout(() => { $('#copyLink').textContent = 'Copy viewer link'; }, 1600); } catch { $('#copyLink').textContent = 'Copy unavailable'; }
 };
-$('#newRoom').onclick = () => { if (isOwner()) window.location.assign(window.location.pathname); };
+$('#newRoom').onclick = startNamedGame;
 $('#backCommunity').onclick = () => {
   window.location.assign(location.protocol === 'file:' ? '../community-hub/index.html' : 'community/');
 };
@@ -230,7 +231,7 @@ $('#historyTable').addEventListener('click', (event) => {
 });
 $('#undoRound').onclick = () => { if (!isOwner() || gameFinished) return; rounds.pop(); editingRound = null; saveGame(); renderGame(); };
 $('#endGame').onclick = () => { if (!isOwner() || gameFinished || !rounds.length) return; if (confirm('End this game and add its final scores to the community?')) { gameFinished = true; saveGame(); renderGame(); } };
-$('#newGame').onclick = () => { if (!isOwner()) return; if (confirm('Clear this game’s scores? The saved game link will remain.')) { hydrate({}); saveGame(); showCorrectScreen(); playerName.focus(); } };
+$('#newGame').onclick = startNamedGame;
 db.auth.onAuthStateChange((_event, session) => { if (!accountReady) return; accountUser = session?.user || null; renderAccount(); renderLibrary(); connectGame(); });
 refreshAuth();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js'));
