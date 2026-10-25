@@ -10,7 +10,7 @@
     <title>Cabo Scorekeeper</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
-    <link rel="stylesheet" href="styles.css?v=15" />
+    <link rel="stylesheet" href="styles.css?v=17" />
   </head>
   <body>
     <main class="app-shell">
@@ -20,10 +20,10 @@
         <p class="intro">Add players, record each round, and see who finishes with the lowest score.</p>
         <p id="syncStatus" class="sync-status">Connecting to the live game…</p>
         <button id="toggleGameInfo" class="game-info-toggle" type="button" hidden>Game info</button>
+        <button id="newRoom" class="new-room-button" type="button">Start a New Game</button>
         <div class="room-controls">
           <span id="roomLabel">Share a read-only live link</span>
           <button id="copyLink" class="share-button owner-only" type="button">Copy viewer link</button>
-          <button id="newRoom" class="new-room-button owner-only" type="button">Start a new game</button>
           <button id="backCommunity" class="new-room-button" type="button">Communities</button>
           <select id="communityPicker" class="owner-only" aria-label="Community for this game" hidden></select>
           <button id="assignCommunity" class="new-room-button owner-only" type="button" hidden>Add to community</button>
@@ -100,8 +100,21 @@
         </section>
       </section>
     </main>
+    <dialog id="newGameDialog" aria-labelledby="newGameHeading">
+      <form id="newGameForm">
+        <h2 id="newGameHeading">Start a New Game</h2>
+        <p>Your existing game and round history will stay saved.</p>
+        <label for="newGameName">Game name</label>
+        <input id="newGameName" maxlength="80" autocomplete="off" required />
+        <p id="newGameError" role="alert"></p>
+        <div class="setup-actions">
+          <button id="cancelNewGame" class="secondary-button" type="button">Cancel</button>
+          <button id="createNewGame" type="submit">Create game</button>
+        </div>
+      </form>
+    </dialog>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=16"></script>
+    <script src="app.js?v=17"></script>
   </body>
 </html>

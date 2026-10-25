@@ -29,7 +29,7 @@ async function saveGame() {
 
 function renderGameName() {
   const name = $('#currentGameName');
-  if (name) name.textContent = activeGame?.title || 'Untitled game';
+  if (name) name.textContent = activeGame?.title || (legacyGame ? 'Legacy game' : 'No game selected');
   const edit = $('#renameGame');
   if (edit) edit.hidden = !isOwner();
 }
@@ -64,6 +64,8 @@ async function renderCommunityPicker() {
 function renderAccount() {
   const signedIn = Boolean(accountUser);
   $('#accountCard').hidden = viewMode;
+  $('#signOut').hidden = !signedIn;
+  $('#newRoom').hidden = viewMode;
   $('#signedOut').hidden = signedIn;
   $('#signedIn').hidden = !signedIn;
   $('#accountEmail').textContent = accountUser?.email || '';
@@ -115,6 +117,7 @@ function showCorrectScreen() {
   renderAccount();
   renderCommunityPicker();
   renderGameName();
+  $('#claimEditor').hidden = !legacyGame || !accountUser || viewMode;
 }
 function renderGame() {
   const editable = isOwner() && !gameFinished, scoreTotals = totals();
@@ -166,7 +169,7 @@ async function connectGame() {
     if (data) { activeGame = data; legacyGame = false; hydrate(data.state); subscribeOwner(); setSyncStatus('Saved to your account', 'live'); showCorrectScreen(); return; }
     if (!suppliedGameId) { activeGame = null; hydrate({}); setSyncStatus('Select Start a new game to begin'); showCorrectScreen(); return; }
     const legacy = await db.from('cabo_games').select('state').eq('id', GAME_ID).maybeSingle();
-    if (legacy.data?.state && !viewMode) { hydrate(legacy.data.state); await createAccountGame(currentState()); return; }
+    if (legacy.data?.state && !viewMode) { activeGame = null; legacyGame = true; hydrate(legacy.data.state); setSyncStatus('Legacy game loaded. Select Set up this game to save it to your account.'); showCorrectScreen(); return; }
     setSyncStatus('This game belongs to another account. Use its viewer link.', 'error'); showCorrectScreen(); return;
   }
   if (suppliedGameId) {
@@ -193,7 +196,58 @@ $('#createAccount').onclick = async () => {
   $('#authMessage').textContent = error ? error.message : data.session ? 'Account created and signed in.' : 'Account created. Confirm your email once, then sign in with your password.';
 };
 $('#signOut').onclick = async () => { await db.auth.signOut(); accountUser = null; activeGame = null; await refreshAuth(); };
-async function startNamedGame() { if (!accountUser || viewMode) return; const proposed = prompt('Enter a name for your new game:', gameTitle()); if (proposed === null) return; const title = proposed.trim().slice(0,80); if (!title) { alert('Please enter a game name.'); return; } const id = `cabo-${crypto.randomUUID().slice(0,12)}`; const { error } = await db.from('cabo_account_games').insert({ id, owner_user_id: accountUser.id, title, state: { players: [], rounds: [], started: false }, community_id: requestedCommunityId || null }); if (error) { setSyncStatus('Could not create your game', 'error'); return; } window.location.assign(`${window.location.pathname}?game=${id}`); }
+let creatingGame = false;
+function startNamedGame() {
+  if (viewMode) return;
+  if (!accountUser) {
+    document.body.classList.remove('game-active');
+    $('#accountCard').hidden = false;
+    $('#authMessage').textContent = 'Sign in to start a new game. Your existing game will stay saved.';
+    $('#emailInput').focus();
+    return;
+  }
+  $('#newGameName').value = gameTitle();
+  $('#newGameError').textContent = '';
+  $('#newGameDialog').showModal();
+  $('#newGameName').focus();
+  $('#newGameName').select();
+}
+$('#cancelNewGame').onclick = () => $('#newGameDialog').close();
+$('#newGameDialog').addEventListener('cancel', (event) => { if (creatingGame) event.preventDefault(); });
+$('#newGameForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (creatingGame) return;
+  const title = $('#newGameName').value.trim();
+  if (!title) { $('#newGameError').textContent = 'Please enter a game name.'; return; }
+  if (!accountUser || viewMode) { $('#newGameError').textContent = 'Sign in again before creating a game.'; return; }
+  creatingGame = true;
+  $('#createNewGame').disabled = true;
+  $('#cancelNewGame').disabled = true;
+  $('#createNewGame').textContent = 'Creating…';
+  $('#newGameError').textContent = '';
+  try {
+    const id = `cabo-${crypto.randomUUID()}`;
+    const communityId = requestedCommunityId || activeGame?.community_id || null;
+    const { error } = await db.from('cabo_account_games').insert({
+      id, owner_user_id: accountUser.id, title,
+      state: { players: [], rounds: [], started: false, completed: false },
+      community_id: communityId
+    });
+    if (error) throw error;
+    const destination = new URL(window.location.pathname, window.location.origin);
+    destination.searchParams.set('game', id);
+    if (communityId) destination.searchParams.set('community', communityId);
+    window.location.assign(destination.href);
+  } catch (error) {
+    $('#newGameError').textContent = `Could not create your game. ${error.message || 'Check your connection and try again.'}`;
+  } finally {
+    creatingGame = false;
+    $('#createNewGame').disabled = false;
+    $('#cancelNewGame').disabled = false;
+    $('#createNewGame').textContent = 'Create game';
+  }
+});
+$('#claimEditor').onclick = () => { if (legacyGame && accountUser && !viewMode) createAccountGame(currentState()); };
 $('#startSavedGame').onclick = startNamedGame;
 $('#renameGame').onclick = () => { if (isOwner()) renameSavedGame(GAME_ID, activeGame?.title); };
 $('#gameLibrary').addEventListener('click', (event) => { const rename = event.target.closest('[data-rename-game-id]'); if (rename) { const id = rename.dataset.renameGameId; const title = rename.closest('.library-game')?.querySelector('strong')?.textContent; renameSavedGame(id, title); return; } const remove = event.target.closest('[data-delete-game-id]'); if (remove) { deleteSavedGame(remove.dataset.deleteGameId); return; } const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}${button.dataset.communityId ? `&community=${encodeURIComponent(button.dataset.communityId)}` : ''}`); });
