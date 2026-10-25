@@ -106,6 +106,7 @@ function renderSetup() {
 function totals() { return players.map((_, i) => rounds.reduce((sum, row) => sum + Number(row[i] || 0), 0)); }
 function showCorrectScreen() {
   const owner = isOwner();
+  document.body.classList.toggle('dashboard-home', !viewMode && !activeGame && !legacyGame);
   document.body.classList.toggle('viewer-mode', !owner);
   document.body.classList.toggle('game-active', gameStarted || (!owner && players.length >= 2));
   $('#accessBanner').textContent = owner ? 'Saved to your account · only you can update scores.' : legacyGame ? 'Legacy game · sign in to claim and save it to your account.' : 'Live viewer access · scores update automatically.';
