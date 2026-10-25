@@ -53,3 +53,50 @@ body::before,.hero::after,.card::after { display:none; }.app-shell { width:min(9
 #newGameDialog label { display:block; margin:18px 0 8px; }
 #newGameName { width:100%; }
 #newGameError { min-height:20px; color:#fda4af !important; }
+
+/* Saved-game dashboard: explicit dark surfaces and mobile-friendly actions. */
+.account-card { max-width:none; padding:24px; }
+.account-card h2 { font-size:28px; line-height:1.15; }
+.account-card .section-heading { align-items:center; margin-bottom:12px; }
+.account-card .step { color:#a8b7c9; }
+.account-copy { line-height:1.5; }
+.account-email { padding:12px 14px; border:1px solid #303b4b; border-radius:12px; background:#111923; line-height:1.5; overflow-wrap:anywhere; }
+.account-email strong { display:block; margin-top:3px; font-weight:600; }
+.library-heading { margin:24px 0 16px; flex-wrap:wrap; }
+.library-heading h3 { font-size:18px; }
+#startSavedGame { min-height:48px; padding:12px 18px; color:#07291d; background:#58d6a3; font-size:14px; font-weight:750; }
+.game-library { gap:12px; }
+.library-game { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; padding:16px; border:1px solid #344154; border-radius:16px; background:#151e2b; color:#f5f5f7; box-shadow:none; }
+.library-game:hover { background:#192536; box-shadow:none; }
+.library-open { grid-column:1 / -1; min-width:0; min-height:60px; padding:0 0 14px; border-bottom:1px solid #344154; border-radius:0; color:#f5f5f7; }
+.library-open span { min-width:0; gap:8px; }
+.library-open strong { color:#f5f5f7; font-size:17px; line-height:1.4; overflow-wrap:anywhere; }
+.library-open small { color:#b4c0d0; font-size:12px; line-height:1.5; }
+.library-open b { flex-shrink:0; padding:10px 12px; border-radius:10px; color:#a7f3d0; background:#173e33; font-size:13px; }
+.library-rename,.library-delete { min-height:44px; padding:10px 14px; border:1px solid #46566d; border-radius:10px; font-size:13px; font-weight:600; box-shadow:none; }
+.library-rename { grid-column:2; color:#e1ebf8; background:#233044; }
+.library-delete { color:#ffb6c0; background:#3c202b; border-color:#72404e; }
+.library-delete:hover { color:#fff; background:#6a293b; }
+button:focus-visible { outline:3px solid #7dd3fc; outline-offset:3px; }
+.dashboard-home .game-name-bar,.dashboard-home #accessBanner,.dashboard-home #newRoom,.dashboard-home #roomLabel { display:none; }
+.dashboard-home .hero .eyebrow { display:block; color:#7dd3fc; margin-bottom:12px; }
+.dashboard-home .hero h1 { display:block; font-size:clamp(30px,6vw,42px); }
+.dashboard-home .hero .intro { display:block; }
+.dashboard-home .hero { margin-bottom:20px; }
+.dashboard-home .room-controls { width:fit-content; padding:0; border:0; background:transparent; }
+.dashboard-home .room-controls button { min-height:44px; padding:10px 16px; }
+.dashboard-home .sync-status { margin-top:4px; }
+@media (max-width:560px) {
+  .account-card { padding:18px; }
+  .account-card h2 { font-size:25px; }
+  .account-card .section-heading { gap:12px; }
+  #signOut { flex-shrink:0; min-height:44px; padding:8px 0 8px 12px; }
+  .library-heading { align-items:stretch; gap:12px; }
+  .library-heading h3 { flex-basis:100%; }
+  #startSavedGame { width:100%; }
+  .library-game { padding:14px; }
+  .library-open { gap:10px; align-items:flex-start; }
+  .library-open b { margin-top:2px; }
+  .library-rename,.library-delete { padding:10px 16px; }
+  .account-email { font-size:12px; }
+}
