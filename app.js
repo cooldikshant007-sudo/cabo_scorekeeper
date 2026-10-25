@@ -47,7 +47,8 @@ async function renameSavedGame(id, existingTitle) {
 async function syncCommunityGame() {
   if (!isOwner() || !activeGame?.community_id) return;
   const { error } = await db.from('community_games').upsert({ source_game_id: GAME_ID, community_id: activeGame.community_id, game_type: 'cabo', owner_user_id: accountUser.id, title: activeGame.title || gameTitle(), state: currentState(), completed: gameFinished, currency: null, updated_at: new Date().toISOString() }, { onConflict: 'source_game_id' });
-  if (error) setSyncStatus('Saved, but could not update the community', 'error');
+  if (error) { setSyncStatus('Saved, but could not update the community. Reopen this game to retry.', 'error'); return false; }
+  return true;
 }
 
 async function renderCommunityPicker() {
@@ -167,7 +168,7 @@ async function connectGame() {
   if (accountUser) {
     const { data, error } = await db.from('cabo_account_games').select('id,owner_user_id,title,state,viewer_token,community_id,updated_at').eq('id', GAME_ID).maybeSingle();
     if (error) { setSyncStatus('Could not load your saved game', 'error'); return; }
-    if (data) { activeGame = data; legacyGame = false; hydrate(data.state); subscribeOwner(); setSyncStatus('Saved to your account', 'live'); showCorrectScreen(); return; }
+    if (data) { activeGame = data; legacyGame = false; hydrate(data.state); subscribeOwner(); setSyncStatus('Saved to your account', 'live'); await syncCommunityGame(); showCorrectScreen(); return; }
     if (!suppliedGameId) { activeGame = null; hydrate({}); setSyncStatus('Select Start a new game to begin'); showCorrectScreen(); return; }
     const legacy = await db.from('cabo_games').select('state').eq('id', GAME_ID).maybeSingle();
     if (legacy.data?.state && !viewMode) { activeGame = null; legacyGame = true; hydrate(legacy.data.state); setSyncStatus('Legacy game loaded. Select Set up this game to save it to your account.'); showCorrectScreen(); return; }
@@ -228,7 +229,12 @@ $('#newGameForm').addEventListener('submit', async (event) => {
   $('#newGameError').textContent = '';
   try {
     const id = `cabo-${crypto.randomUUID()}`;
-    const communityId = requestedCommunityId || activeGame?.community_id || null;
+    let communityId = activeGame?.community_id || requestedCommunityId || null;
+    if (!communityId) {
+      const { data: choices, error: communityError } = await db.from('communities').select('id');
+      if (communityError) throw communityError;
+      if (choices?.length === 1) communityId = choices[0].id;
+    }
     const { error } = await db.from('cabo_account_games').insert({
       id, owner_user_id: accountUser.id, title,
       state: { players: [], rounds: [], started: false, completed: false },
@@ -269,8 +275,8 @@ $('#assignCommunity').onclick = async () => {
   const { error } = await db.from('cabo_account_games').update({ community_id: communityId, updated_at: new Date().toISOString() }).eq('id', GAME_ID);
   if (error) { setSyncStatus('Could not add this game to the community', 'error'); return; }
   activeGame.community_id = communityId;
-  await syncCommunityGame();
-  setSyncStatus('Added to your community', 'live');
+  const synced = await syncCommunityGame();
+  if (synced) setSyncStatus('Added to your community', 'live');
   renderCommunityPicker();
 };
 const playerForm = $('#playerForm'), playerName = $('#playerName');
