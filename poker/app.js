@@ -80,6 +80,7 @@ function renderAccount() {
   $('#signedOut').hidden = signedIn;
   $('#signedIn').hidden = !signedIn;
   $('#signOut').hidden = !signedIn;
+  $('#newRoom').hidden = viewMode;
   $('#accountEmail').textContent = accountUser?.email || '';
 }
 async function renderLibrary() {
@@ -225,6 +226,7 @@ function renderTabs(ready) {
   document.querySelectorAll('[data-requires-game]').forEach((button) => { button.disabled = !ready; });
   $('#tabBar').hidden = !isOwner() && !complete;
   if (!isOwner()) activeTab = complete ? 'results' : '';
+  if (isOwner() && !activeTab) activeTab = 'setup';
   if (isOwner() && !complete && activeTab === 'results') activeTab = 'setup';
   if (isOwner() && !ready && ['buyins', 'closeout'].includes(activeTab)) activeTab = 'seat';
   showTab(activeTab);
@@ -249,7 +251,7 @@ function render() {
   updateStakeUI(); renderPlayers();
   document.body.classList.toggle('viewer-mode', !isOwner());
   $('#accessBanner').textContent = isOwner() ? (game.settingsLocked ? 'Saved to your account · stakes are locked.' : 'Saved to your account · set stakes before the game starts.') : legacyGame ? 'Legacy table · sign in to import and save it.' : 'Live viewer access · updates appear automatically.';
-  $('#claimEditor').hidden = true;
+  $('#claimEditor').hidden = !legacyGame || !accountUser || viewMode;
   $('#totalPlayers').textContent = game.players.length.toLocaleString();
   $('#totalChips').textContent = game.players.reduce((total, player) => total + totalCashIn(player), 0).toLocaleString();
   $('#totalBuyIns').textContent = game.players.reduce((total, player) => total + buyInCount(player), 0).toLocaleString();
@@ -304,9 +306,7 @@ $('#backCommunity').onclick = () => {
 };
 $('#accountToggle').onclick = () => { accountCollapsed = !accountCollapsed; document.body.classList.toggle('account-open', !accountCollapsed); renderAccount(); };
 $('#toggleGameInfo').onclick = () => { document.body.classList.toggle('info-open'); $('#toggleGameInfo').textContent = document.body.classList.contains('info-open') ? 'Hide game info' : 'Game info'; };
-$('#claimEditor').onclick = () => {
-  return;
-};
+$('#claimEditor').onclick = () => { if (legacyGame && accountUser && !viewMode) createAccountGame(game); };
 document.querySelectorAll('.tab-button').forEach((button) => button.addEventListener('click', () => showTab(button.dataset.tab)));
 
 $('#settingsForm').addEventListener('submit', (event) => {
@@ -374,7 +374,7 @@ async function connectGame() {
     if (data) { activeGame = data; legacyGame = false; game = normaliseState(data.state); liveStateLoaded = true; subscribeOwner(); setSyncStatus('Saved to your account', 'live'); render(); return; }
     if (!suppliedGameId) { activeGame = null; game = defaultState(); liveStateLoaded = false; setSyncStatus('Select Start a new game to begin'); render(); return; }
     const legacy = await db.from('cabo_games').select('state').eq('id', GAME_ID).maybeSingle();
-    if (legacy.data?.state && !viewMode) { game = normaliseState(legacy.data.state); await createAccountGame(game); return; }
+    if (legacy.data?.state && !viewMode) { activeGame = null; legacyGame = true; game = normaliseState(legacy.data.state); liveStateLoaded = true; setSyncStatus('Legacy table loaded. Select Set up this table to save it to your account.'); render(); return; }
     setSyncStatus('This table belongs to another account. Use its viewer link.', 'error'); liveStateLoaded = false; render(); return;
   }
   if (suppliedGameId) {
@@ -401,7 +401,58 @@ $('#createAccount').onclick = async () => {
   $('#authMessage').textContent = error ? error.message : data.session ? 'Account created and signed in.' : 'Account created. Confirm your email once, then sign in with your password.';
 };
 $('#signOut').onclick = async () => { await db.auth.signOut(); accountUser = null; activeGame = null; await refreshAuth(); };
-async function startNamedPokerGame() { if (!accountUser || viewMode) return; const proposed = prompt('Enter a name for your new Poker game:', pokerTitle()); if (proposed === null) return; const title = proposed.trim().slice(0,80); if (!title) { alert('Please enter a game name.'); return; } const id = `poker-${crypto.randomUUID().slice(0,12)}`; const { error } = await db.from('poker_account_games').insert({ id, owner_user_id: accountUser.id, title, state: defaultState(), community_id: requestedCommunityId || null }); if (error) { setSyncStatus('Could not create your Poker game', 'error'); return; } window.location.assign(`${window.location.pathname}?game=${id}`); }
+let creatingGame = false;
+function startNamedPokerGame() {
+  if (viewMode) return;
+  if (!accountUser) {
+    accountCollapsed = false;
+    document.body.classList.add('account-open');
+    $('#accountCard').hidden = false;
+    $('#authMessage').textContent = 'Sign in to start a new game. Your existing game will stay saved.';
+    $('#emailInput').focus();
+    return;
+  }
+  $('#newGameName').value = pokerTitle();
+  $('#newGameError').textContent = '';
+  $('#newGameDialog').showModal();
+  $('#newGameName').focus();
+  $('#newGameName').select();
+}
+$('#cancelNewGame').onclick = () => $('#newGameDialog').close();
+$('#newGameDialog').addEventListener('cancel', (event) => { if (creatingGame) event.preventDefault(); });
+$('#newGameForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (creatingGame) return;
+  const title = $('#newGameName').value.trim();
+  if (!title) { $('#newGameError').textContent = 'Please enter a game name.'; return; }
+  if (!accountUser || viewMode) { $('#newGameError').textContent = 'Sign in again before creating a game.'; return; }
+  creatingGame = true;
+  $('#createNewGame').disabled = true;
+  $('#cancelNewGame').disabled = true;
+  $('#createNewGame').textContent = 'Creating…';
+  $('#newGameError').textContent = '';
+  try {
+    const id = `poker-${crypto.randomUUID()}`;
+    const communityId = requestedCommunityId || activeGame?.community_id || null;
+    const { error } = await db.from('poker_account_games').insert({
+      id, owner_user_id: accountUser.id, title,
+      state: defaultState(),
+      community_id: communityId
+    });
+    if (error) throw error;
+    const destination = new URL(window.location.pathname, window.location.origin);
+    destination.searchParams.set('game', id);
+    if (communityId) destination.searchParams.set('community', communityId);
+    window.location.assign(destination.href);
+  } catch (error) {
+    $('#newGameError').textContent = `Could not create your game. ${error.message || 'Check your connection and try again.'}`;
+  } finally {
+    creatingGame = false;
+    $('#createNewGame').disabled = false;
+    $('#cancelNewGame').disabled = false;
+    $('#createNewGame').textContent = 'Create game';
+  }
+});
 $('#startSavedGame').onclick = startNamedPokerGame;
 $('#gameLibrary').addEventListener('click', (event) => { const remove = event.target.closest('[data-delete-game-id]'); if (remove) { deleteSavedGame(remove.dataset.deleteGameId); return; } const button = event.target.closest('[data-game-id]'); if (button) window.location.assign(`${window.location.pathname}?game=${button.dataset.gameId}${button.dataset.communityId ? `&community=${encodeURIComponent(button.dataset.communityId)}` : ''}`); });
 db.auth.onAuthStateChange((_event, session) => { if (!accountReady) return; accountUser = session?.user || null; renderAccount(); renderLibrary(); connectGame(); });

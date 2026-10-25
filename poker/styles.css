@@ -110,3 +110,11 @@ select[id*="buyin" i] {
 
 /* iPhone buy-in picker: explicit dark foreground on white control. */
 .history .buyin-total-grid .buyin-total-card select.buyin-total-select { color:#111827!important; -webkit-text-fill-color:#111827!important; background-color:#fff!important; color-scheme:light!important; text-shadow:none!important; }
+/* Keep creation available even when game info and the account library are collapsed. */
+#newRoom { margin-bottom:10px; }
+#newGameDialog { width:min(440px,calc(100% - 32px)); padding:24px; color:#f5f5f7; background:#18181b; border:1px solid #303038; border-radius:18px; }
+#newGameDialog::backdrop { background:#000a; }
+#newGameDialog p { color:#a1a1aa; font-size:14px; }
+#newGameDialog label { display:block; margin:18px 0 8px; }
+#newGameName { width:100%; }
+#newGameError { min-height:20px; color:#fda4af !important; }

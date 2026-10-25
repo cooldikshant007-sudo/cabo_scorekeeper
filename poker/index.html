@@ -10,7 +10,7 @@
     <title>Poker Cash Game Tracker</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
-  <link rel="stylesheet" href="styles.css?v=32" />
+  <link rel="stylesheet" href="styles.css?v=33" />
   </head>
   <body>
     <main class="app-shell">
@@ -20,10 +20,10 @@
         <p class="intro">A simple shared table for buy-ins, final stacks, and settlements.</p>
         <p id="syncStatus" class="sync-status">Connecting to the live table…</p>
         <button id="toggleGameInfo" class="game-info-toggle" type="button" hidden>Game info</button>
+        <button id="newRoom" class="new-room-button" type="button">Start a New Game</button>
         <div class="room-controls">
           <button id="copyLink" class="share-button" type="button">Copy viewer link</button>
           <button id="copyUpdateText" class="copy-update-button owner-only" type="button">Copy update text</button>
-          <button id="newRoom" class="new-room-button owner-only" type="button">New table</button>
           <button id="backCommunity" class="new-room-button" type="button">Communities</button>
           <button id="accountToggle" class="new-room-button" type="button" hidden>My tables</button>
         </div>
@@ -54,7 +54,7 @@
         <div id="signedIn" hidden>
           <p class="account-copy">Your tables are saved to this account.</p>
           <p class="account-email">Signed in as <strong id="accountEmail"></strong></p>
-          <div class="library-heading"><h3>Your saved tables</h3><button id="startSavedGame" type="button">Start a table</button></div>
+          <div class="library-heading"><h3>Your saved tables</h3><button id="startSavedGame" type="button">Start a New Game</button></div>
           <div id="gameLibrary" class="game-library"></div>
         </div>
       </section>
@@ -62,7 +62,7 @@
       <section id="overviewPanel" class="overview-panel">
         <section id="gameArea" hidden>
           <section class="scoreboard card">
-            <div class="section-heading"><div><p class="step">PLAYER BUY-INS</p><h2>Buy-ins at a glance</h2></div><button id="newGame" class="text-button owner-only" type="button">Clear table</button></div>
+            <div class="section-heading"><div><p class="step">PLAYER BUY-INS</p><h2>Buy-ins at a glance</h2></div><button id="newGame" class="text-button owner-only" type="button">Start a New Game</button></div>
             <div id="standings" class="standings"></div>
           </section>
         </section>
@@ -143,8 +143,21 @@
         <p id="settlementCheck" class="settlement-check"></p>
       </section>
     </main>
+    <dialog id="newGameDialog" aria-labelledby="newGameHeading">
+      <form id="newGameForm">
+        <h2 id="newGameHeading">Start a New Game</h2>
+        <p>Your existing table, buy-ins, and results will stay saved.</p>
+        <label for="newGameName">Game name</label>
+        <input id="newGameName" maxlength="80" autocomplete="off" required />
+        <p id="newGameError" role="alert"></p>
+        <div class="setup-actions">
+          <button id="cancelNewGame" class="secondary-button" type="button">Cancel</button>
+          <button id="createNewGame" type="submit">Create game</button>
+        </div>
+      </form>
+    </dialog>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=30"></script>
+  <script src="app.js?v=33"></script>
   </body>
 </html>
