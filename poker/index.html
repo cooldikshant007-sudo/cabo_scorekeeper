@@ -10,7 +10,7 @@
     <title>Poker Cash Game Tracker</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
-  <link rel="stylesheet" href="styles.css?v=33" />
+  <link rel="stylesheet" href="styles.css?v=34" />
   </head>
   <body>
     <main class="app-shell">
@@ -29,7 +29,7 @@
         </div>
         <div class="top-summary" aria-live="polite">
           <div><span>Players</span><strong id="totalPlayers">0</strong></div>
-          <div><span>Chips in play</span><strong id="totalChips">0</strong></div>
+          <div><span>Money in play</span><strong id="totalChips">0</strong></div>
           <div><span>Total buy-ins</span><strong id="totalBuyIns">0</strong></div>
         </div>
         <p id="accessBanner" class="access-banner"></p>
@@ -83,7 +83,7 @@
           <form id="settingsForm" class="settings-form">
             <label>Currency
               <select id="currency" aria-label="Currency">
-                <option value="INR">INR — Indian rupee</option><option value="USD">USD — US dollar</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — Pound sterling</option><option value="AUD">AUD — Australian dollar</option><option value="CAD">CAD — Canadian dollar</option>
+                <option value="INR">INR — Indian rupee</option>
               </select>
             </label>
             <label>Chips per buy-in<input id="chipsPerBuyIn" type="number" min="1" step="1" inputmode="numeric" required /></label>
@@ -158,6 +158,6 @@
     </dialog>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=33"></script>
+  <script src="app.js?v=34"></script>
   </body>
 </html>

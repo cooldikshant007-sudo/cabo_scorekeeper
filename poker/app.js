@@ -105,12 +105,12 @@ async function deleteSavedGame(id) {
 
 function totalCashIn(player) { return player.initialChips + player.buyIns.reduce((total, buyIn) => total + buyIn.chips, 0); }
 function buyInCount(player) { return 1 + player.buyIns.length; }
-function hasFinal(player) { return Number.isFinite(Number(game.finalChips[player.id])); }
+function hasFinal(player) { const value = game.finalChips[player.id]; return value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)); }
 function finalChips(player) { return number(game.finalChips[player.id]); }
 function chipDelta(player) { return finalChips(player) - totalCashIn(player); }
 function settlement(player) { return chipDelta(player) * game.settings.buyInValue / game.settings.chipsPerBuyIn; }
 function formatMoney(value) {
-  try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: game.settings.currency, maximumFractionDigits: 2 }).format(value); }
+  try { return new Intl.NumberFormat('en-IN', { style: 'currency', currency: game.settings.currency, maximumFractionDigits: 2 }).format(value); }
   catch { return `${game.settings.currency} ${value.toFixed(2)}`; }
 }
 
@@ -147,13 +147,13 @@ function renderStandings() {
   if (!isOwner()) {
     $('#standings').innerHTML = `<div class="viewer-player-grid">${game.players.map((player) => {
       const count = buyInCount(player);
-      return `<article class="viewer-player-card"><span>${escapeHTML(player.name)}</span><strong>${count}</strong><small>buy-in${count === 1 ? '' : 's'}</small></article>`;
+      return `<article class="viewer-player-card"><span>${escapeHTML(player.name)}</span><strong>${formatMoney(totalCashIn(player) * game.settings.buyInValue / game.settings.chipsPerBuyIn)}</strong><small>${count} buy-in${count === 1 ? '' : 's'}</small></article>`;
     }).join('')}</div>`;
     return;
   }
-  $('#standings').innerHTML = `<div class="overview-table-wrap"><table class="overview-table"><thead><tr><th>Player</th><th>Buy-ins</th><th>Chips bought in</th></tr></thead><tbody>${game.players.map((player) => {
+  $('#standings').innerHTML = `<div class="overview-table-wrap"><table class="overview-table"><thead><tr><th>Player</th><th>Buy-ins</th><th>Amount bought in (₹)</th></tr></thead><tbody>${game.players.map((player) => {
     const count = buyInCount(player);
-    return `<tr><td>${escapeHTML(player.name)}</td><td>${count} buy-in${count === 1 ? '' : 's'}</td><td>${totalCashIn(player).toLocaleString()}</td></tr>`;
+    return `<tr><td>${escapeHTML(player.name)}</td><td>${count} buy-in${count === 1 ? '' : 's'}</td><td>${formatMoney(totalCashIn(player) * game.settings.buyInValue / game.settings.chipsPerBuyIn)}</td></tr>`;
   }).join('')}</tbody></table></div>`;
 }
 
@@ -182,8 +182,8 @@ function renderSettlement() {
   const totalDifference = game.players.reduce((total, player) => total + chipDelta(player), 0);
   const rows = [...game.players].sort((a, b) => settlement(b) - settlement(a));
   $('#settlementList').innerHTML = rows.map((player) => {
-    const value = settlement(player); const label = value > 0 ? 'Collects' : value < 0 ? 'Pays' : 'Even';
-    return `<article class="settlement-row ${value > 0 ? 'collect' : value < 0 ? 'pay' : ''}"><span>${escapeHTML(player.name)}</span><strong>${label} ${formatMoney(Math.abs(value))}</strong><small>${finalChips(player).toLocaleString()} final − ${totalCashIn(player).toLocaleString()} bought in</small></article>`;
+    const value = settlement(player); const rank = rows.findIndex(p => Math.round(settlement(p)*100) === Math.round(value*100)) + 1; const label = value > 0 ? 'Collects' : value < 0 ? 'Pays' : 'Even';
+    return `<article class="settlement-row ${value > 0 ? 'collect' : value < 0 ? 'pay' : ''}"><span>#${rank} · ${escapeHTML(player.name)}</span><strong>${label} ${formatMoney(Math.abs(value))}</strong><small>${formatMoney(finalChips(player) * game.settings.buyInValue / game.settings.chipsPerBuyIn)} cash-out − ${formatMoney(totalCashIn(player) * game.settings.buyInValue / game.settings.chipsPerBuyIn)} bought in</small></article>`;
   }).join('');
   const payments = paymentPlan();
   $('#paymentPlan').innerHTML = totalDifference === 0
@@ -253,7 +253,7 @@ function render() {
   $('#accessBanner').textContent = isOwner() ? (game.settingsLocked ? 'Saved to your account · stakes are locked.' : 'Saved to your account · set stakes before the game starts.') : legacyGame ? 'Legacy table · sign in to import and save it.' : 'Live viewer access · updates appear automatically.';
   $('#claimEditor').hidden = !legacyGame || !accountUser || viewMode;
   $('#totalPlayers').textContent = game.players.length.toLocaleString();
-  $('#totalChips').textContent = game.players.reduce((total, player) => total + totalCashIn(player), 0).toLocaleString();
+  $('#totalChips').textContent = formatMoney(game.players.reduce((total, player) => total + totalCashIn(player), 0) * game.settings.buyInValue / game.settings.chipsPerBuyIn);
   $('#totalBuyIns').textContent = game.players.reduce((total, player) => total + buyInCount(player), 0).toLocaleString();
   const ready = game.players.length >= 2;
   $('#toggleGameInfo').hidden = !ready;
@@ -286,11 +286,11 @@ $('#copyLink').onclick = async () => {
 function shareUpdateText() {
   const lines = [
     '♠ Poker cash game update',
-    `Players: ${game.players.length}  |  Chips in play: ${game.players.reduce((total, player) => total + totalCashIn(player), 0).toLocaleString()}  |  Buy-ins: ${game.players.reduce((total, player) => total + buyInCount(player), 0)}`,
+    `Players: ${game.players.length}  |  Money in play: ${formatMoney(game.players.reduce((total, player) => total + totalCashIn(player), 0) * game.settings.buyInValue / game.settings.chipsPerBuyIn)}  |  Buy-ins: ${game.players.reduce((total, player) => total + buyInCount(player), 0)}`,
     '',
     'Player buy-ins:'
   ];
-  game.players.forEach((player) => lines.push(`• ${player.name}: total buy in: ${buyInCount(player)}`));
+  game.players.forEach((player) => lines.push(`• ${player.name}: total buy-in: ${formatMoney(totalCashIn(player) * game.settings.buyInValue / game.settings.chipsPerBuyIn)} (${buyInCount(player)} buy-ins)`));
   return lines.join('\n');
 }
 $('#copyUpdateText').onclick = async () => {
@@ -371,7 +371,7 @@ async function connectGame() {
   if (accountUser) {
     const { data, error } = await db.from('poker_account_games').select('id,owner_user_id,title,state,viewer_token,community_id,updated_at').eq('id', GAME_ID).maybeSingle();
     if (error) { setSyncStatus('Could not load your saved table', 'error'); return; }
-    if (data) { activeGame = data; legacyGame = false; game = normaliseState(data.state); liveStateLoaded = true; subscribeOwner(); setSyncStatus('Saved to your account', 'live'); render(); return; }
+    if (data) { activeGame = data; legacyGame = false; game = normaliseState(data.state); liveStateLoaded = true; subscribeOwner(); setSyncStatus('Saved to your account', 'live'); await syncCommunityGame(); render(); return; }
     if (!suppliedGameId) { activeGame = null; game = defaultState(); liveStateLoaded = false; setSyncStatus('Select Start a new game to begin'); render(); return; }
     const legacy = await db.from('cabo_games').select('state').eq('id', GAME_ID).maybeSingle();
     if (legacy.data?.state && !viewMode) { activeGame = null; legacyGame = true; game = normaliseState(legacy.data.state); liveStateLoaded = true; setSyncStatus('Legacy table loaded. Select Set up this table to save it to your account.'); render(); return; }
@@ -433,7 +433,12 @@ $('#newGameForm').addEventListener('submit', async (event) => {
   $('#newGameError').textContent = '';
   try {
     const id = `poker-${crypto.randomUUID()}`;
-    const communityId = requestedCommunityId || activeGame?.community_id || null;
+    let communityId = activeGame?.community_id || requestedCommunityId || null;
+    if (!communityId) {
+      const { data: choices, error: communityError } = await db.from('communities').select('id');
+      if (communityError) throw communityError;
+      if (choices?.length === 1) communityId = choices[0].id;
+    }
     const { error } = await db.from('poker_account_games').insert({
       id, owner_user_id: accountUser.id, title,
       state: defaultState(),
