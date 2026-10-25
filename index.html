@@ -3,20 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#24523c" />
+    <meta name="theme-color" content="#09090b" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Cabo Scores" />
     <title>Cabo Scorekeeper</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
-    <link rel="stylesheet" href="styles.css?v=17" />
+    <link rel="stylesheet" href="styles.css?v=18" />
   </head>
   <body>
     <main class="app-shell">
       <section class="hero">
         <p class="eyebrow">CABO SCOREKEEPER</p>
-        <h1>Keep the table focused on the game.</h1>
+        <h1>Your table. Your games.</h1>
         <p class="intro">Add players, record each round, and see who finishes with the lowest score.</p>
         <p id="syncStatus" class="sync-status">Connecting to the live game…</p>
         <button id="toggleGameInfo" class="game-info-toggle" type="button" hidden>Game info</button>
@@ -115,6 +115,6 @@
     </dialog>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=17"></script>
+    <script src="app.js?v=18"></script>
   </body>
 </html>
