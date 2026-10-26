@@ -10,7 +10,7 @@ async function refreshRankings(){
  const root=document.querySelector('#communityRankings');
  try{
  const {data:session}=await db.auth.getSession();
- if(!session.session){root.hidden=true;return;}
+ if(!session.session){root.hidden=false;root.querySelector('[data-rank-message]').textContent='Sign in with your game account to view community ranks and Poker winnings in rupees.';$('#caboStats').innerHTML='';$('#pokerStats').innerHTML='';return;}
  root.hidden=false;
  const {data:communities,error}=await db.from('communities').select('id,name');
  if(error)throw error;

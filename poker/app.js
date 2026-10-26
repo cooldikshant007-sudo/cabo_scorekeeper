@@ -464,3 +464,14 @@ db.auth.onAuthStateChange((_event, session) => { if (!accountReady) return; acco
 
 loadGame(); render(); refreshAuth();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js'));
+
+// Activate installed-app updates without waiting for every old tab to close.
+if ('serviceWorker' in navigator) {
+  let refreshingApp = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshingApp) return;
+    refreshingApp = true;
+    window.location.reload();
+  });
+  navigator.serviceWorker.ready.then(registration => registration.update()).catch(() => {});
+}
