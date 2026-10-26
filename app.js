@@ -64,6 +64,8 @@ async function renderCommunityPicker() {
 
 function renderAccount() {
   const signedIn = Boolean(accountUser);
+  document.body.classList.toggle('auth-required', !signedIn && !viewMode);
+  $('#openAccount').hidden = signedIn;
   $('#accountCard').hidden = viewMode;
   $('#signOut').hidden = !signedIn;
   $('#newRoom').hidden = viewMode;
@@ -191,12 +193,34 @@ $('#signInForm').addEventListener('submit', async (event) => {
   const { error } = await db.auth.signInWithPassword({ email, password });
   $('#authMessage').textContent = error ? error.message : 'Signed in successfully.';
 });
+let signingUp = false;
 $('#createAccount').onclick = async () => {
+  if (signingUp) return;
+  if (!$('#signInForm').reportValidity()) return;
   const email = $('#emailInput').value.trim(), password = $('#passwordInput').value;
-  if (!email || !password) { $('#authMessage').textContent = 'Enter an email address and a password of at least 8 characters.'; return; }
-  const { data, error } = await db.auth.signUp({ email, password, options: { emailRedirectTo: APP_URL } });
-  $('#authMessage').textContent = error ? error.message : data.session ? 'Account created and signed in.' : 'Account created. Confirm your email once, then sign in with your password.';
+  signingUp = true;
+  $('#createAccount').disabled = true;
+  $('#createAccount').textContent = 'Creating account…';
+  $('#authMessage').textContent = '';
+  try {
+    const { data, error } = await db.auth.signUp({ email, password, options: { emailRedirectTo: APP_URL } });
+    $('#authMessage').textContent = error ? error.message : data?.session ? 'Account created and signed in.' : 'Check your email to confirm your account, then sign in here.';
+  } catch {
+    $('#authMessage').textContent = 'Could not create your account. Check your connection and try again.';
+  } finally {
+    signingUp = false;
+    $('#createAccount').disabled = false;
+    $('#createAccount').textContent = 'Create a new account';
+  }
 };
+$('#openAccount').onclick = () => {
+  if (viewMode) { window.location.assign(window.location.pathname); return; }
+  document.body.classList.add('account-open');
+  $('#accountCard').hidden = false;
+  $('#accountCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  $('#emailInput').focus({ preventScroll: true });
+};
+
 $('#signOut').onclick = async () => { await db.auth.signOut(); accountUser = null; activeGame = null; await refreshAuth(); };
 let creatingGame = false;
 function startNamedGame() {

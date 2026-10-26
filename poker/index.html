@@ -10,7 +10,7 @@
     <title>Poker Cash Game Tracker</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
-  <link rel="stylesheet" href="styles.css?v=34" />
+  <link rel="stylesheet" href="styles.css?v=20261026-signup" />
   </head>
   <body>
     <main class="app-shell">
@@ -20,6 +20,7 @@
         <p class="intro">A simple shared table for buy-ins, final stacks, and settlements.</p>
         <p id="syncStatus" class="sync-status">Connecting to the live table…</p>
         <button id="toggleGameInfo" class="game-info-toggle" type="button" hidden>Game info</button>
+        <button id="openAccount" class="auth-entry" type="button" hidden>Sign in / Create account</button>
         <button id="newRoom" class="new-room-button" type="button">Start a New Game</button>
         <div class="room-controls">
           <button id="copyLink" class="share-button" type="button">Copy viewer link</button>
@@ -48,9 +49,9 @@
             <input id="emailInput" type="email" autocomplete="email" placeholder="you@example.com" aria-label="Email address" required />
             <input id="passwordInput" type="password" autocomplete="current-password" minlength="8" placeholder="Password" aria-label="Password" required />
             <button type="submit">Sign in</button>
-            <button id="createAccount" class="secondary-button" type="button">Create account</button>
           </form>
-          <p id="authMessage" class="auth-message"></p>
+          <div class="create-account-option"><p>New here? One account works for Cabo, Poker and Game Club.</p><button id="createAccount" type="button">Create a new account</button><small>Enter your email and a password of at least 8 characters above.</small></div>
+          <p id="authMessage" class="auth-message" role="status" aria-live="polite"></p>
         </div>
         <div id="signedIn" hidden>
           <p class="account-copy">Your tables are saved to this account.</p>
@@ -159,5 +160,5 @@
     </dialog>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=20261026"></script></body>
+  <script src="app.js?v=20261026-signup"></script></body>
 </html>
