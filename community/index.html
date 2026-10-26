@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c0e12">
   <title>Game Club</title>
   <link rel="stylesheet" href="styles.css?v=3">
-</head>
+<style>.add-member-form{display:grid;gap:10px;margin-top:20px;border-top:1px solid var(--line);padding-top:18px}.add-member-form label{color:var(--ink)}.actions{grid-template-columns:1fr}#memberStatus:empty{display:none}</style></head>
 <body>
 <main>
   <header><p class="eyebrow">YOUR PRIVATE TABLE</p><h1>Game Club<span>.</span></h1><p class="intro">Good games. Lasting bragging rights.</p></header>
@@ -18,11 +18,11 @@
       <section class="card community-picker">
         <div class="section-label"><h2>Your communities</h2><span class="micro">PRIVATE CLUBS</span></div>
         <div id="communities"></div>
-        <details class="manage"><summary>Create or join a community <span aria-hidden="true">+</span></summary><div class="actions"><form id="createForm"><label for="communityName">Create a community</label><input id="communityName" maxlength="60" placeholder="Community name" required><button>Create</button></form><form id="joinForm"><label for="joinCode">Join with an invite</label><input id="joinCode" maxlength="10" aria-label="Invite code" placeholder="Invite code" required><input id="joinName" maxlength="40" aria-label="Your display name" placeholder="Your display name" required><button>Join</button></form></div></details>
+        <details class="manage"><summary>Create a community <span aria-hidden="true">+</span></summary><div class="actions"><form id="createForm"><label for="communityName">Create a community</label><input id="communityName" maxlength="60" placeholder="Community name" required><button>Create</button></form></div></details>
         <p id="message" role="status"></p>
       </section>
       <section id="dashboard" hidden>
-        <div class="card club-info"><div class="heading"><div><p class="eyebrow">THE CLUB</p><h2 id="communityTitle"></h2></div><button id="copyInvite" class="quiet">Copy invite link</button></div><p id="invite"></p><p id="inviteStatus" class="note" role="status" style="overflow-wrap:anywhere"></p><div id="members" class="members"></div></div>
+        <div class="card club-info"><div class="heading"><div><p class="eyebrow">THE CLUB</p><h2 id="communityTitle"></h2></div><button id="showAddMember" class="quiet" type="button" hidden>Add by email</button></div><p id="invite"></p><section id="addMemberSection" hidden><form id="addMemberForm" class="add-member-form"><label for="memberEmail">Add a member by email</label><input id="memberEmail" type="email" autocomplete="off" placeholder="Their account email" maxlength="254" required><input id="memberName" aria-label="Member display name (optional)" placeholder="Display name (optional)" maxlength="40"><button id="addMemberSubmit" type="submit">Add member</button></form><p class="note">Use the email of their verified Cabo or Poker account.</p></section><p id="memberStatus" class="note" role="status"></p><div id="members" class="members"></div></div>
         <div class="stats">
           <section class="card leaderboard"><div class="board-heading"><span class="suit cabo" aria-hidden="true">♣</span><div><p class="eyebrow">LIFETIME LEADERBOARD</p><h2>Cabo</h2></div><span class="metric">LOW AVG WINS</span></div><p class="note">Lowest average leads · includes games in progress.</p><div id="caboStats" class="table-scroll" tabindex="0" role="region" aria-label="Cabo lifetime rankings"></div></section>
           <section class="card leaderboard"><div class="board-heading"><span class="suit poker" aria-hidden="true">♠</span><div><p class="eyebrow">LIFETIME LEADERBOARD</p><h2>Poker</h2></div><span class="metric">NET WINNINGS · ₹</span></div><p class="note">Highest net winnings lead · completed games only.</p><div id="pokerStats" class="table-scroll" tabindex="0" role="region" aria-label="Poker lifetime rankings"></div></section>
@@ -34,6 +34,6 @@
   </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
