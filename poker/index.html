@@ -36,14 +36,7 @@
         <button id="claimEditor" class="claim-editor" type="button" hidden>Set up this table</button>
       </section>
 
-      <section id="communityRankings" class="card" style="display:revert">
-<h2>Community rankings</h2>
-<div style="display:flex;gap:8px;margin:12px 0"><select id="rankCommunity" aria-label="Rankings community" style="min-width:0;flex:1"></select><button id="refreshRankings" type="button">Refresh</button></div>
-<p data-rank-message>Loading rankings…</p>
-<h3>Cabo · average score</h3><div id="caboStats" style="overflow-x:auto"></div>
-<h3>Poker · net winnings in ₹</h3><div id="pokerStats" style="overflow-x:auto"></div>
-<style>#communityRankings[hidden]{display:none!important}#communityRankings .table{width:100%;border-collapse:collapse;font-size:14px}#communityRankings td,#communityRankings th{text-align:left;padding:10px 8px;border-bottom:1px solid #444;color:inherit;white-space:nowrap}#communityRankings [data-rank-message]{font-size:13px;opacity:.8}</style>
-</section>
+
 <section id="accountCard" class="card account-card">
         <div class="section-heading">
           <div><p class="step">SAVED GAMES</p><h2>Your Poker account</h2></div>
@@ -166,6 +159,5 @@
     </dialog>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=20261026"></script>
-  <script src="../rankings.js?v=2"></script></body>
+  <script src="app.js?v=20261026"></script></body>
 </html>
