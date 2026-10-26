@@ -11,10 +11,10 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
     <link rel="stylesheet" href="styles.css?v=20261026-signup" />
-  </head>
+  <style>.create-account-link[hidden]{display:none!important}</style></head>
   <body>
     <main class="app-shell">
-<a class="create-account-link" href="account/" style="display:inline-flex!important;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;margin:0 0 16px;border:1px solid #92e5ba;border-radius:9px;background:#82e3b5;color:#082b1c;font:700 14px -apple-system,BlinkMacSystemFont,sans-serif;text-decoration:none">Create account</a>
+<a class="create-account-link" hidden href="account/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;margin:0 0 16px;border:1px solid #92e5ba;border-radius:9px;background:#82e3b5;color:#082b1c;font:700 14px -apple-system,BlinkMacSystemFont,sans-serif;text-decoration:none">Create account</a>
       <section class="hero">
         <p class="eyebrow">CABO SCOREKEEPER</p>
         <h1>Your table. Your games.</h1>
@@ -118,5 +118,5 @@
     </dialog>
     <template id="playerChipTemplate"><span class="player-chip"><span class="chip-name"></span><button type="button" aria-label="Remove player">×</button></span></template>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=20261026-signup"></script></body>
+    <script src="app.js?v=20261026-auth-links"></script></body>
 </html>

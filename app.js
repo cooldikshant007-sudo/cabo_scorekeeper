@@ -64,6 +64,7 @@ async function renderCommunityPicker() {
 
 function renderAccount() {
   const signedIn = Boolean(accountUser);
+  document.querySelector('.create-account-link').hidden = signedIn || !accountReady;
   document.body.classList.toggle('auth-required', !signedIn && !viewMode);
   $('#openAccount').hidden = signedIn;
   $('#accountCard').hidden = viewMode;

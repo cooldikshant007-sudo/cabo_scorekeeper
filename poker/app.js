@@ -74,6 +74,7 @@ async function syncCommunityGame() {
 function pokerTitle() { const d = new Date(); return `poker_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function renderAccount() {
   const signedIn = Boolean(accountUser);
+  document.querySelector('.create-account-link').hidden = signedIn || !accountReady;
   document.body.classList.toggle('auth-required', !signedIn && !viewMode);
   $('#openAccount').hidden = signedIn;
   $('#accountCard').hidden = viewMode || (signedIn && accountCollapsed);
