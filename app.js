@@ -188,6 +188,18 @@ async function refreshAuth() {
   renderAccount(); await renderLibrary(); await connectGame();
 }
 
+$('#googleSignIn').addEventListener('click', async () => {
+  const button = $('#googleSignIn');
+  button.disabled = true;
+  $('#authMessage').textContent = 'Opening Google sign-in…';
+  try {
+    const { error } = await db.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href.split('#')[0] } });
+    if (error) throw error;
+  } catch (error) {
+    $('#authMessage').textContent = error.message || 'Google sign-in could not start. Please try again.';
+    button.disabled = false;
+  }
+});
 $('#signInForm').addEventListener('submit', async (event) => {
   event.preventDefault(); const email = $('#emailInput').value.trim(), password = $('#passwordInput').value;
   if (!email || !password) return;
