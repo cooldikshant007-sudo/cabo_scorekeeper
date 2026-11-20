@@ -11,7 +11,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
     <link rel="stylesheet" href="styles.css?v=20261026-signup" />
-  <style>.create-account-link[hidden]{display:none!important}</style></head>
+  <style>.create-account-link[hidden]{display:none!important}</style><style>.saved-games-details{margin-top:16px;border:1px solid rgba(150,160,170,.25);border-radius:12px;padding:12px 14px}.saved-games-details summary{cursor:pointer;font-weight:650;list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:32px}.saved-games-details summary::-webkit-details-marker{display:none}.saved-games-details[open] summary span{transform:rotate(180deg)}.saved-games-details .game-library{margin-top:14px;max-height:55vh;overflow-y:auto}.library-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.library-heading button,#newRoom{min-height:48px}</style></head>
   <body>
     <main class="app-shell">
 <a class="create-account-link" hidden href="account/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;margin:0 0 16px;border:1px solid #92e5ba;border-radius:9px;background:#82e3b5;color:#082b1c;font:700 14px -apple-system,BlinkMacSystemFont,sans-serif;text-decoration:none">Create account</a>
@@ -53,8 +53,8 @@
         <div id="signedIn" hidden>
           <p id="accountStateSignedIn" class="account-copy"></p>
           <p class="account-email">Signed in as <strong id="accountEmail"></strong></p>
-          <div class="library-heading"><h3>Your saved games</h3><button id="startSavedGame" type="button">Start a new game</button></div>
-          <div id="gameLibrary" class="game-library"></div>
+          <div class="library-heading"><h3>Ready to play?</h3><button id="startSavedGame" type="button">+ Start a new game</button></div>
+          <details class="saved-games-details"><summary>View previous games <span aria-hidden="true">▾</span></summary><div id="gameLibrary" class="game-library"></div></details>
         </div>
       </section>
 
