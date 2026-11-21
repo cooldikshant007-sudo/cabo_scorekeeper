@@ -25,7 +25,7 @@
       <section id="dashboard" hidden>
         <div class="card club-info"><div class="heading"><div><p class="eyebrow">THE CLUB</p><h2 id="communityTitle"></h2></div><button id="showAddMember" class="quiet" type="button" hidden>Add by email</button></div><p id="invite"></p><section id="addMemberSection" hidden><form id="addMemberForm" class="add-member-form"><label for="memberEmail">Add a member by email</label><input id="memberEmail" type="email" autocomplete="off" placeholder="Their account email" maxlength="254" required><input id="memberName" aria-label="Member display name (optional)" placeholder="Display name (optional)" maxlength="40"><button id="addMemberSubmit" type="submit">Add member</button></form><p class="note">Use the email of their verified Cabo or Poker account.</p></section><p id="memberStatus" class="note" role="status"></p><div id="members" class="members"></div></div>
         <div class="stats">
-          <section class="card leaderboard"><div class="board-heading"><span class="suit cabo" aria-hidden="true">♣</span><div><p class="eyebrow">LIFETIME LEADERBOARD</p><h2>Cabo</h2></div><span class="metric">LOW AVG WINS</span></div><p class="note">Lowest average leads · includes games in progress.</p><div id="caboStats" class="table-scroll" tabindex="0" role="region" aria-label="Cabo lifetime rankings"></div></section>
+          <section class="card leaderboard"><div class="board-heading"><span class="suit cabo" aria-hidden="true">♣</span><div><p class="eyebrow">LIFETIME LEADERBOARD</p><h2>Cabo</h2></div><span class="metric">LOW AVG WINS</span></div><p class="note">Lowest average leads · includes games in progress. First-place finishes count completed games only (ties included).</p><div id="caboStats" class="table-scroll" tabindex="0" role="region" aria-label="Cabo lifetime rankings"></div></section>
           <section class="card leaderboard"><div class="board-heading"><span class="suit poker" aria-hidden="true">♠</span><div><p class="eyebrow">LIFETIME LEADERBOARD</p><h2>Poker</h2></div><span class="metric">NET WINNINGS · ₹</span></div><p class="note">Highest net winnings lead · completed games only.</p><div id="pokerStats" class="table-scroll" tabindex="0" role="region" aria-label="Poker lifetime rankings"></div></section>
         </div>
         <div class="club-footer"><button id="deleteCommunity" class="delete-community" hidden>Delete community</button></div>
@@ -35,6 +35,6 @@
   </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=20261026-auth-links"></script>
+<script src="app.js?v=20261121-first-place"></script>
 </body>
 </html>
