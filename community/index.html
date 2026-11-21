@@ -34,7 +34,11 @@
     <section class="panel" data-panel="start" hidden><section class="card"><p class="eyebrow">NEXT ROUND</p><h2>Bring everyone to the table.</h2><p id="startHint" class="note">Choose a community for your game.</p><select id="gameCommunity" aria-label="Community for this game"></select><p id="startMessage" class="note" role="status"></p><div class="start-grid"><a id="openCabo" href="#"><span><small>LOWEST SCORE WINS</small>Play Cabo</span><b aria-hidden="true">↗</b></a><a id="openPoker" href="#"><span><small>EVERY BUY-IN COUNTS</small>Play Poker</span><b aria-hidden="true">↗</b></a></div></section></section>
   </section>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=20261121-login-repair"></script>
+<script>
+window.addEventListener('error',function(e){var m=document.getElementById('authMessage');if(m&&!document.getElementById('app').hidden)return;if(m)m.textContent='Game Club failed to load: '+(e.message||'Script error')});
+window.addEventListener('unhandledrejection',function(e){var m=document.getElementById('authMessage');if(m&&document.getElementById('auth')&&!document.getElementById('auth').hidden)m.textContent='Connection error: '+(e.reason&&e.reason.message||'Please try again')});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" onerror="document.getElementById('authMessage').textContent='Authentication library could not load. Please check your connection or content blocker.'"></script>
+<script src="app.js?v=20261121-login-diagnostics-2" onerror="document.getElementById('authMessage').textContent='Game Club script could not load. Please refresh.'"></script>
 </body>
 </html>
