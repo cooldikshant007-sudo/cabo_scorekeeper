@@ -1,0 +1,53 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#11683b"><title>Our DMart List</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f7f4;color:#152f22;font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:720px;margin:auto;padding:16px 14px 90px}header{border-radius:22px;background:linear-gradient(130deg,#09572e,#1b8b4c);color:white;padding:24px 20px;box-shadow:0 10px 25px #175a3520}h1{font-size:29px;letter-spacing:-.7px;margin:0 0 5px}.muted{opacity:.82;font-size:14px}.meta{display:flex;justify-content:space-between;margin:23px 0 9px;font-size:15px;font-weight:700}.bar{height:9px;border-radius:20px;background:#ffffff4a;overflow:hidden}.bar>div{height:100%;width:0;background:#a6edbf;transition:width .2s}.add{display:grid;grid-template-columns:minmax(0,1fr) 110px 82px;gap:7px;margin:18px 0}input,button{font:inherit}input{width:100%;padding:13px 11px;border:1px solid #d2ddd5;border-radius:12px;background:white;min-width:0;color:#163d27}button{cursor:pointer;border:0;border-radius:12px;background:#11683b;color:white;font-weight:700;padding:12px}button:disabled{opacity:.5;cursor:wait}.tabs{display:flex;gap:5px;background:#e5ebe6;border-radius:14px;padding:5px;margin:12px 0 16px}.tabs button{width:50%;color:#496354;background:transparent}.tabs button.active{background:#fff;color:#11683b;box-shadow:0 2px 8px #00000012}.items{display:grid;gap:9px}.item{display:grid;grid-template-columns:32px minmax(0,1fr) 100px 28px;align-items:center;gap:9px;background:#fff;border:1px solid #e0e8e1;border-radius:14px;padding:11px 10px;box-shadow:0 3px 7px #1c593107}.item .name{font-weight:600;overflow-wrap:anywhere}.item.done .name{text-decoration:line-through;color:#728479}.check{width:27px;height:27px;accent-color:#167743;cursor:pointer}.qty{padding:9px 7px;font-size:14px;background:#f7faf7;text-align:center}.remove{color:#b44a4a;border:0;background:transparent;padding:5px;font-size:21px}.status{margin:12px 0;color:#62786a;font-size:13px;min-height:22px}.empty{text-align:center;background:white;border-radius:14px;padding:30px;color:#687a6c}.hint{font-size:13px;color:#667d6e;text-align:center;margin-top:18px}.fatal{background:#fff1ed;color:#a52c22;padding:16px;border-radius:12px}.sync{font-weight:700;color:#11683b}.hidden{display:none}@media(max-width:420px){main{padding:12px 10px}h1{font-size:25px}.add{grid-template-columns:minmax(0,1fr) 88px 68px}.add input,.add button{padding:11px 7px;font-size:14px}.item{grid-template-columns:27px minmax(0,1fr) 84px 25px;gap:6px}.qty{font-size:13px}}
+</style></head><body><main><header><h1>🛒 Our DMart List</h1><div class="muted">Shared shopping checklist • updates on both phones</div><div class="meta"><span id="progress">Loading…</span><span id="pct">0%</span></div><div class="bar"><div id="fill"></div></div></header>
+<form id="addForm" class="add"><input id="newName" placeholder="Add an item…" maxlength="160" required aria-label="Item name"><input id="newQty" placeholder="Qty" maxlength="80" aria-label="Quantity"><button id="addBtn" type="submit">+ Add</button></form>
+<div class="tabs"><button id="toBuy" class="active" type="button">To Buy (0)</button><button id="purchased" type="button">Purchased (0)</button></div>
+<div class="status" id="status">Connecting to shared list…</div><div class="items" id="items"></div><p class="hint">Changes save online automatically. Keep this link private and share it with your wife. Tap a quantity to edit it. Refresh to see changes immediately.</p></main>
+<script>
+(()=>{"use strict";
+const API="https://jpcdbtaztovxmqruvktv.supabase.co/functions/v1/shared-shopping-list";
+const token=new URLSearchParams(location.hash.slice(1)).get("token");
+const el=id=>document.getElementById(id);
+const itemsEl=el("items"),statusEl=el("status");
+let items=[],tab="buy",busy=false,lastSync=0;
+function status(s,bad=false){statusEl.textContent=s;statusEl.style.color=bad?"#a52c22":"#62786a";}
+async function request(method="GET",body){
+ if(!token)throw new Error("Missing shared-list link. Open the complete link you received.");
+ const r=await fetch(API,{method,headers:{"content-type":"application/json","x-list-token":token},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"});
+ const data=await r.json();if(!r.ok)throw new Error(data.error||"Sync failed");return data;
+}
+function render(){
+ const bought=items.filter(x=>x.purchased).length;
+ el("progress").textContent=bought+" of "+items.length+" purchased";el("pct").textContent=items.length?Math.round(bought/items.length*100)+"%":"0%";
+ el("fill").style.width=(items.length?bought/items.length*100:0)+"%";
+ el("toBuy").textContent="To Buy ("+(items.length-bought)+")";el("purchased").textContent="Purchased ("+bought+")";
+ el("toBuy").classList.toggle("active",tab==="buy");el("purchased").classList.toggle("active",tab==="done");
+ itemsEl.replaceChildren();
+ const filtered=items.filter(x=>x.purchased===(tab==="done"));
+ if(!filtered.length){const e=document.createElement("div");e.className="empty";e.textContent=tab==="buy"?"Everything purchased! 🎉":"No purchased items yet.";itemsEl.append(e);return;}
+ for(const item of filtered){
+ const row=document.createElement("div");row.className="item"+(item.purchased?" done":"");
+ const cb=document.createElement("input");cb.type="checkbox";cb.className="check";cb.checked=item.purchased;cb.setAttribute("aria-label","Mark "+item.name+" purchased");cb.onchange=()=>update(item.id,{purchased:cb.checked});
+ const name=document.createElement("span");name.className="name";name.textContent=item.name;
+ const qty=document.createElement("input");qty.className="qty";qty.value=item.quantity||"";qty.placeholder="Qty";qty.maxLength=80;qty.setAttribute("aria-label","Quantity for "+item.name);
+ qty.onchange=()=>update(item.id,{quantity:qty.value});
+ const del=document.createElement("button");del.className="remove";del.type="button";del.textContent="×";del.setAttribute("aria-label","Delete "+item.name);del.onclick=()=>{if(confirm("Remove "+item.name+" from the list?"))remove(item.id)};
+ row.append(cb,name,qty,del);itemsEl.append(row);
+ }
+}
+async function load(silent=false){
+ if(busy)return;
+ try{const data=await request();items=data.items||[];lastSync=Date.now();render();if(!silent)status("✓ Synced online • "+new Date().toLocaleTimeString());}
+ catch(e){status("⚠ "+e.message,true);if(!items.length){itemsEl.textContent="Could not load the shopping list. Check your connection and reload.";}}
+}
+async function update(id,patch){if(busy)return;busy=true;try{await request("PATCH",{id,...patch});status("✓ Change saved");}catch(e){status("⚠ "+e.message,true);}finally{busy=false;await load(true);}}
+async function remove(id){if(busy)return;busy=true;try{await request("DELETE",{id});status("✓ Item removed");}catch(e){status("⚠ "+e.message,true);}finally{busy=false;await load(true);}}
+el("addForm").onsubmit=async e=>{e.preventDefault();if(busy)return;const name=el("newName").value.trim(),quantity=el("newQty").value.trim();if(!name)return;busy=true;el("addBtn").disabled=true;try{await request("POST",{name,quantity});el("newName").value="";el("newQty").value="";tab="buy";status("✓ Item added");}catch(err){status("⚠ "+err.message,true);}finally{busy=false;el("addBtn").disabled=false;await load(true);}};
+el("toBuy").onclick=()=>{tab="buy";render()};el("purchased").onclick=()=>{tab="done";render()};
+window.addEventListener("focus",()=>{if(Date.now()-lastSync>2000)load(true)});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)load(true)});
+load();setInterval(()=>{if(!document.hidden&&!busy)load(true)},12000);
+})();
+</script></body></html>
