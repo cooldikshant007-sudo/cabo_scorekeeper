@@ -1,4 +1,4 @@
-const $=s=>document.querySelector(s),db=window.supabase.createClient('https://jpcdbtaztovxmqruvktv.supabase.co','sb_publishable_y7nZtPY1snx7_GSAExxhLw_j9xaOoxy');let user,active,members=[],communities=[];
+const $=s=>document.querySelector(s),db=window.gameClubDb;let user,active,members=[],communities=[];
 const esc=v=>{const n=document.createElement('div');n.textContent=v||'';return n.innerHTML};
 let authRun=0;
 async function auth(){
@@ -39,25 +39,6 @@ function renderStats(games){const cabo=Object.create(null);
   $('#caboStats').innerHTML=cl.length?'<table class="table"><tr><th>Rank</th><th>Player</th><th>🥇 1st places</th><th>Win %</th><th>Games</th><th>Average</th><th>Total score</th></tr>'+cl.map((x,i)=>'<tr><td>#'+(cl.findIndex(p=>p.total*x.n===x.total*p.n)+1)+'</td><td>'+esc(x.name)+'</td><td><strong>'+x.firsts+'</strong></td><td>'+(x.completed?(100*x.firsts/x.completed).toFixed(1)+'%':'—')+'</td><td>'+x.n+'</td><td>'+(x.total/x.n).toFixed(1)+'</td><td>'+x.total+'</td></tr>').join('')+'</table>':'<p class="note">No recorded Cabo rounds yet.</p>';
   const poker=Object.create(null);pokerRows(games).forEach(r=>{const k=r.name.trim().toLocaleLowerCase(),x=poker[k]||{name:r.name.trim(),net:0,n:0};x.net+=r.net;x.n++;poker[k]=x});const pl=Object.values(poker).map(x=>({...x,net:Math.round((x.net+Number.EPSILON)*100)/100})).sort((a,b)=>b.net-a.net||a.name.localeCompare(b.name));const rupees=v=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',minimumFractionDigits:2,maximumFractionDigits:2}).format(v);$('#pokerStats').innerHTML=pl.length?'<table class="table"><tr><th>Rank</th><th>Player</th><th>Games</th><th>Total net winnings (₹)</th></tr>'+pl.map(x=>'<tr><td>#'+(pl.findIndex(p=>p.net===x.net)+1)+'</td><td>'+esc(x.name)+'</td><td>'+x.n+'</td><td>'+(x.net>0?'+':'')+rupees(x.net)+'</td></tr>').join('')+'</table>':'<p class="note">No completed Poker games yet.</p>'}
 async function openCommunity(id){const{data:c}=await db.from('communities').select('*').eq('id',id).single();if(!c)return;active=c;$('#memberStatus').textContent='';$('#addMemberSection').hidden=true;$('#addMemberForm').reset();document.querySelectorAll('[data-community]').forEach(b=>{const selected=b.dataset.community===id;b.closest('.community').classList.toggle('selected',selected);b.textContent=selected?'Selected':'Open';b.setAttribute('aria-pressed',String(selected))});const[{data:m},{data:g}]=await Promise.all([db.from('community_members').select('*').eq('community_id',id).order('display_name'),db.from('community_games').select('*').eq('community_id',id).order('updated_at',{ascending:false})]);members=m||[];$('#dashboard').hidden=false;$('#communityTitle').textContent=c.name;$('#invite').textContent=members.length+' member'+(members.length===1?'':'s');$('#showAddMember').hidden=c.owner_user_id!==user.id;$('#members').innerHTML=members.map(x=>'<div class="member">'+esc(x.display_name)+'</div>').join('');renderStats(g||[]);$('#deleteCommunity').hidden=c.owner_user_id!==user.id}
-$('#authForm').onsubmit=async e=>{
- e.preventDefault();
- const button=$('#emailSignIn');button.disabled=true;button.textContent='Signing in…';$('#authMessage').textContent='Checking your account…';
- try{
-  const {data,error}=await db.auth.signInWithPassword({email:$('#email').value.trim(),password:$('#password').value});
-  if(error)throw error;
-  if(!data.session)throw new Error('No session was returned. Please try again.');
-  $('#authMessage').textContent='Signed in. Opening Game Club…';
-  await auth();
- }catch(err){$('#authMessage').textContent='Sign-in failed: '+(err?.message||'Please try again.')}
- finally{button.disabled=false;button.textContent='Sign in'}
-};
-$('#googleSignIn').onclick=async()=>{
- const button=$('#googleSignIn');button.disabled=true;button.textContent='Connecting to Google…';$('#authMessage').textContent='Redirecting to Google…';
- try{
-  const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
-  if(error)throw error;
- }catch(err){$('#authMessage').textContent='Google sign-in failed: '+(err?.message||'Please try again.');button.disabled=false;button.textContent='Continue with Google'}
-};
 $('#createForm').onsubmit=async e=>{e.preventDefault();const{data,error}=await db.functions.invoke('create-community',{body:{name:$('#communityName').value.trim(),displayName:user.email.split('@')[0]}});if(error||data?.error){$('#message').textContent='Could not create community. Please try again.';return}$('#communityName').value='';await loadCommunities();openCommunity(data.community.id)};
 $('#communities').onclick=e=>{const b=e.target.closest('[data-community]');if(b)openCommunity(b.dataset.community)};$('#signOut').onclick=()=>db.auth.signOut();
 $('#deleteCommunity').onclick=async()=>{if(!active||active.owner_user_id!==user.id||!confirm('Delete '+active.name+' permanently? This removes all members and games.'))return;const{error}=await db.from('communities').delete().eq('id',active.id);if(error){$('#message').textContent='Could not delete this community.';return}active=null;$('#dashboard').hidden=true;$('#deleteCommunity').hidden=true;await loadCommunities()};
@@ -89,4 +70,5 @@ $('#addMemberForm').onsubmit=async e=>{
  finally{addingMember=false;$('#addMemberSubmit').disabled=false;$('#addMemberSubmit').textContent='Add member';}
 };
 
+window.gameClubRefresh=auth;
 db.auth.onAuthStateChange(()=>setTimeout(auth,0));auth();
