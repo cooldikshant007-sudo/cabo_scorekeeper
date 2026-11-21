@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#0c0e12">
   <title>Game Club</title>
   <link rel="stylesheet" href="styles.css?v=3">
-<style>.add-member-form{display:grid;gap:10px;margin-top:20px;border-top:1px solid var(--line);padding-top:18px}.add-member-form label{color:var(--ink)}.actions{grid-template-columns:1fr}#memberStatus:empty{display:none}</style><style>.create-account-link[hidden]{display:none!important}</style></head>
+<style>.add-member-form{display:grid;gap:10px;margin-top:20px;border-top:1px solid var(--line);padding-top:18px}.add-member-form label{color:var(--ink)}.actions{grid-template-columns:1fr}#memberStatus:empty{display:none}</style><style>.create-account-link[hidden]{display:none!important}</style><style>.google-login{display:block;width:100%;margin:16px 0 8px;padding:13px 16px;border:1px solid #92e5ba;border-radius:10px;background:#82e3b5;color:#082b1c;font-weight:750;cursor:pointer}.login-divider{text-align:center;color:#aab4c0;font-size:13px;margin:12px 0}.google-login:disabled,#emailSignIn:disabled{opacity:.65;cursor:wait}#authMessage{min-height:1.4em;overflow-wrap:anywhere}</style></head>
 <body>
 <main>
 <a class="create-account-link" hidden href="../account/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;margin:0 0 16px;border:1px solid #92e5ba;border-radius:9px;background:#82e3b5;color:#082b1c;font:700 14px -apple-system,BlinkMacSystemFont,sans-serif;text-decoration:none">Create account</a>
   <header><p class="eyebrow">YOUR PRIVATE TABLE</p><h1>Game Club<span>.</span></h1><p class="intro">Good games. Lasting bragging rights.</p></header>
-  <section id="auth" class="card"><h2>Welcome back</h2><p class="note">Sign in with your Cabo or Poker account.</p><form id="authForm"><input id="email" type="email" autocomplete="email" aria-label="Email" placeholder="Email" required><input id="password" type="password" autocomplete="current-password" aria-label="Password" minlength="8" placeholder="Password" required><button>Sign in</button></form><p id="authMessage" role="status"></p></section>
+  <section id="auth" class="card"><h2>Welcome back</h2><p class="note">Sign in with your Cabo or Poker account.</p><button id="googleSignIn" type="button" class="google-login">Continue with Google</button><p class="login-divider">or sign in with email</p><form id="authForm"><input id="email" type="email" autocomplete="email" aria-label="Email" placeholder="Email" required><input id="password" type="password" autocomplete="current-password" aria-label="Password" minlength="8" placeholder="Password" required><button id="emailSignIn" type="submit">Sign in</button></form><p id="authMessage" role="status"></p></section>
   <section id="app" hidden>
     <div class="bar"><span id="who"></span><button id="signOut" class="quiet">Sign out</button></div>
     <nav class="tabs" aria-label="Game Club"><button class="tab active" data-tab="communities" aria-pressed="true">Communities</button><button class="tab" data-tab="start" aria-pressed="false">Start game <span aria-hidden="true">↗</span></button></nav>
@@ -35,6 +35,6 @@
   </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=20261121-win-percent"></script>
+<script src="app.js?v=20261121-login-repair"></script>
 </body>
 </html>
